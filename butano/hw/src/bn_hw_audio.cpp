@@ -10,6 +10,7 @@
 #include "../include/bn_hw_irq.h"
 #include "../include/bn_hw_link.h"
 #include "../3rd_party/vgm-player/include/vgm.h"
+#include "../3rd_party/vgm-player/include/lsdj.h"
 
 extern "C"
 {
@@ -100,10 +101,10 @@ namespace
 
     constexpr int _max_channels = BN_CFG_AUDIO_MAX_MUSIC_CHANNELS + BN_CFG_AUDIO_MAX_SOUND_CHANNELS;
 
-    alignas(int) BN_DATA_EWRAM_BSS uint8_t maxmod_engine_buffer[
-            _max_channels * (MM_SIZEOF_MODCH + MM_SIZEOF_ACTCH + MM_SIZEOF_MIXCH) + _mix_length()];
+    // alignas(int) BN_DATA_EWRAM_BSS uint8_t maxmod_engine_buffer[
+    //         _max_channels * (MM_SIZEOF_MODCH + MM_SIZEOF_ACTCH + MM_SIZEOF_MIXCH) + _mix_length()];
 
-    alignas(int) uint8_t maxmod_mixing_buffer[_mix_length()];
+    // alignas(int) uint8_t maxmod_mixing_buffer[_mix_length()];
 
 
     void _check_sounds_queue()
@@ -162,7 +163,7 @@ namespace
 
     void _commit()
     {
-        mmFrame();
+        // mmFrame();
 
         if(data.dmg_music_type == dmg_music_type::GBT_PLAYER)
         {
@@ -199,24 +200,31 @@ void init()
 {
     new(&data) static_data();
 
-    irq::set_isr(irq::id::VBLANK, mmVBlank);
+    // irq::set_isr(irq::id::VBLANK, mmVBlank);
+    // irq::enable(irq::id::VBLANK);
+
+    // mm_gba_system maxmod_info;
+    // maxmod_info.mixing_mode = mm_mixmode(BN_CFG_AUDIO_MIXING_RATE);
+    // maxmod_info.mod_channel_count = _max_channels;
+    // maxmod_info.mix_channel_count = _max_channels;
+    // maxmod_info.module_channels = mm_addr(maxmod_engine_buffer);
+    // maxmod_info.active_channels = mm_addr(maxmod_engine_buffer + (_max_channels * MM_SIZEOF_MODCH));
+    // maxmod_info.mixing_channels = mm_addr(maxmod_engine_buffer +
+    //         (_max_channels * (MM_SIZEOF_MODCH + MM_SIZEOF_ACTCH)));
+    // maxmod_info.mixing_memory = mm_addr(maxmod_mixing_buffer);
+    // maxmod_info.wave_memory = mm_addr(maxmod_engine_buffer +
+    //         (_max_channels * (MM_SIZEOF_MODCH + MM_SIZEOF_ACTCH + MM_SIZEOF_MIXCH)));
+    // maxmod_info.soundbank = mm_addr(_bn_audio_soundbank_bin);
+    // mmInit(&maxmod_info);
+
+    // mmSetVBlankHandler(reinterpret_cast<void*>(_vblank_handler));
+    
+    irq::set_isr(irq::id::VBLANK, _vblank_handler);
     irq::enable(irq::id::VBLANK);
 
-    mm_gba_system maxmod_info;
-    maxmod_info.mixing_mode = mm_mixmode(BN_CFG_AUDIO_MIXING_RATE);
-    maxmod_info.mod_channel_count = _max_channels;
-    maxmod_info.mix_channel_count = _max_channels;
-    maxmod_info.module_channels = mm_addr(maxmod_engine_buffer);
-    maxmod_info.active_channels = mm_addr(maxmod_engine_buffer + (_max_channels * MM_SIZEOF_MODCH));
-    maxmod_info.mixing_channels = mm_addr(maxmod_engine_buffer +
-            (_max_channels * (MM_SIZEOF_MODCH + MM_SIZEOF_ACTCH)));
-    maxmod_info.mixing_memory = mm_addr(maxmod_mixing_buffer);
-    maxmod_info.wave_memory = mm_addr(maxmod_engine_buffer +
-            (_max_channels * (MM_SIZEOF_MODCH + MM_SIZEOF_ACTCH + MM_SIZEOF_MIXCH)));
-    maxmod_info.soundbank = mm_addr(_bn_audio_soundbank_bin);
-    mmInit(&maxmod_info);
-
-    mmSetVBlankHandler(reinterpret_cast<void*>(_vblank_handler));
+    LsdjInit();
+    irq::set_isr(irq::id::VCOUNT, LsdjIntrVCount);
+    irq::enable(irq::id::VCOUNT);
 }
 
 void enable()

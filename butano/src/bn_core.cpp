@@ -214,7 +214,7 @@ namespace
         hblank_effects_manager::update();
         BN_PROFILER_ENGINE_DETAILED_STOP();
 
-        bool use_dma = ! link_manager::active();
+        bool use_dma = false; //! link_manager::active();
 
         BN_PROFILER_ENGINE_GENERAL_STOP();
 

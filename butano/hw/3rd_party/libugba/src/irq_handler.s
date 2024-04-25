@@ -39,10 +39,10 @@ IRQ_GlobalInterruptHandler:
     tst     r1, r2
     bne     interrupt_found
 
-    # add     r3, r3, #4
-    # mov     r2, #(1 << 2) // VCOUNT
-    # tst     r1, r2
-    # bne     interrupt_found
+    add     r3, r3, #4
+    mov     r2, #(1 << 2) // VCOUNT
+    tst     r1, r2
+    bne     interrupt_found
 
     # sub     r3, r3, #8
     sub     r3, r3, #4
