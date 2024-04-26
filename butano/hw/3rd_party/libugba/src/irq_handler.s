@@ -44,8 +44,7 @@ IRQ_GlobalInterruptHandler:
     tst     r1, r2
     bne     interrupt_found
 
-    # sub     r3, r3, #8
-    sub     r3, r3, #4
+    sub     r3, r3, #8
     mov     r2, #(1 << 0) // VBLANK
     tst     r1, r2
     bne     interrupt_found
