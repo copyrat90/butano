@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2023 Gustavo Valiente gustavo.valiente@protonmail.com
+ * Copyright (c) 2020-2024 Gustavo Valiente gustavo.valiente@protonmail.com
  * zlib License, see LICENSE file.
  */
 
@@ -33,7 +33,7 @@ namespace bn::hw::link
 
     void send(int data_to_send);
 
-    [[nodiscard]] bool receive(LinkResponse& response);
+    [[nodiscard]] bool receive(lc::LinkResponse& response);
 
     void commit();
 }

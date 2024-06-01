@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2023 Gustavo Valiente gustavo.valiente@protonmail.com
+ * Copyright (c) 2020-2024 Gustavo Valiente gustavo.valiente@protonmail.com
  * zlib License, see LICENSE file.
  */
 
@@ -31,6 +31,8 @@
  *
  * This wait states setting is not supported by the GBA Micro.
  * Enabling it will not crash the GBA Micro though, it will just fall back to @ref BN_EWRAM_WAIT_STATE_2.
+ *
+ * Some GBA SPs will crash after a few frames with this setting.
  *
  * @ingroup memory
  */

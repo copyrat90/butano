@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2023 Gustavo Valiente gustavo.valiente@protonmail.com
+ * Copyright (c) 2020-2024 Gustavo Valiente gustavo.valiente@protonmail.com
  * zlib License, see LICENSE file.
  */
 
@@ -538,6 +538,9 @@
  * (files with `*.mod`, `*.xm`, `*.s3m` and `*.it` extensions).
  * You can use <a href="https://sox.sourceforge.net/">SoX</a> to split the long `*.wav` file and
  * <a href="https://openmpt.org/">OpenMPT</a> to create the final module file.
+ *
+ * You also can use <a href="https://github.com/Fralacticus/gba-wav-to-s3m-converter">GBA Wav to S3m Converter</a>,
+ * a tool that generates a `*.s3m` file from a long `*.wav` automatically.
  *
  *
  * @subsection faq_music_missing_notes Why there are missing notes when playing some Direct Sound songs?

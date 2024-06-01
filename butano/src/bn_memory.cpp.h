@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2023 Gustavo Valiente gustavo.valiente@protonmail.com
+ * Copyright (c) 2020-2024 Gustavo Valiente gustavo.valiente@protonmail.com
  * zlib License, see LICENSE file.
  */
 
@@ -140,6 +140,11 @@ int used_static_ewram()
 int used_rom()
 {
     return hw::memory::used_rom();
+}
+
+bool fast_ewram()
+{
+    return hw::memory::fast_ewram();
 }
 
 void set_bytes(uint8_t value, int bytes, void* destination_ptr)

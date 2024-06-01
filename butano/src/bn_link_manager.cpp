@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2023 Gustavo Valiente gustavo.valiente@protonmail.com
+ * Copyright (c) 2020-2024 Gustavo Valiente gustavo.valiente@protonmail.com
  * zlib License, see LICENSE file.
  */
 
@@ -29,7 +29,7 @@ void send(int data_to_send)
 
 optional<link_state> receive()
 {
-    LinkResponse response;
+    lc::LinkResponse response;
     optional<link_state> result;
 
     if(hw::link::receive(response))

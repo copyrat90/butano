@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2023 Gustavo Valiente gustavo.valiente@protonmail.com
+ * Copyright (c) 2020-2024 Gustavo Valiente gustavo.valiente@protonmail.com
  * zlib License, see LICENSE file.
  */
 
@@ -9,6 +9,7 @@
 #include "bn_color.h"
 #include "bn_timer.h"
 #include "bn_keypad.h"
+#include "bn_memory.h"
 #include "bn_timers.h"
 #include "bn_version.h"
 #include "bn_profiler.h"
@@ -134,6 +135,7 @@ namespace
         int skip_frames = 0;
         int last_update_frames = 1;
         int missed_frames = 0;
+        bool dma_enabled = true;
         bool slow_game_pak = false;
         volatile bool waiting_for_vblank = false;
     };
@@ -214,7 +216,7 @@ namespace
         hblank_effects_manager::update();
         BN_PROFILER_ENGINE_DETAILED_STOP();
 
-        bool use_dma = link_manager::active();
+        bool use_dma = data.dma_enabled && ! link_manager::active();
 
         BN_PROFILER_ENGINE_GENERAL_STOP();
 
@@ -234,6 +236,10 @@ namespace
         BN_BARRIER;
         result.missed_frames = data.missed_frames;
         data.missed_frames = 0;
+
+        BN_PROFILER_ENGINE_DETAILED_START("eng_hblank_fx_commit");
+        hblank_effects_manager::disable();
+        BN_PROFILER_ENGINE_DETAILED_STOP();
 
         BN_PROFILER_ENGINE_DETAILED_START("eng_audio_commands");
         audio_manager::execute_commands();
@@ -620,6 +626,22 @@ core_lock::~core_lock()
 
     // Wake up gpio:
     gpio_manager::wake_up();
+}
+
+}
+
+
+namespace bn::memory
+{
+
+bool dma_enabled()
+{
+    return core::data.dma_enabled;
+}
+
+void set_dma_enabled(bool dma_enabled)
+{
+    core::data.dma_enabled = dma_enabled;
 }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2023 Gustavo Valiente gustavo.valiente@protonmail.com
+ * Copyright (c) 2020-2024 Gustavo Valiente gustavo.valiente@protonmail.com
  * zlib License, see LICENSE file.
  */
 
@@ -139,6 +139,13 @@ namespace bn::memory
      * @brief Returns the size of the ROM in bytes.
      */
     [[nodiscard]] int used_rom();
+
+    /**
+     * @brief Indicates if EWRAM access time is 1+1 clock cycles for sequential accesses or not.
+     *
+     * See @ref BN_EWRAM_WAIT_STATE_1.
+     */
+    [[nodiscard]] bool fast_ewram();
 
     /**
      * @brief Copies the given amount of elements from the object referenced by source_ref
@@ -286,6 +293,16 @@ namespace bn::memory
      * @param destination_ptr Destination of the decompressed data.
      */
     void decompress(compression_type compression, const void* source_ptr, int bytes, void* destination_ptr);
+
+    /**
+     * @brief Indicates if Butano can use DMA for memory copies when it's safe to do so.
+     */
+    [[nodiscard]] bool dma_enabled();
+
+    /**
+     * @brief Sets if Butano can use DMA for memory copies when it's safe to do so.
+     */
+    void set_dma_enabled(bool dma_enabled);
 }
 
 #endif

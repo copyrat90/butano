@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2023 Gustavo Valiente gustavo.valiente@protonmail.com
+ * Copyright (c) 2020-2024 Gustavo Valiente gustavo.valiente@protonmail.com
  * zlib License, see LICENSE file.
  */
 
@@ -12,11 +12,36 @@
  * @tableofcontents
  *
  *
- * @section changelog_17_5_0 17.5.0 (next release)
+ * @section changelog_17_6_0 17.6.0
  *
+ * * bn::bg_palette_ptr::rotate_range_start, bn::bg_palette_ptr::rotate_range_size
+ *   and bn::bg_palette_ptr::set_rotate_range added.
+ * * bn::sprite_palette_ptr::rotate_range_start, bn::sprite_palette_ptr::rotate_range_size
+ *   and bn::sprite_palette_ptr::set_rotate_range added.
+ * * bn::fixed::modulo added.
+ * * bn::memory::fast_ewram added.
+ * * bn::random::get_unbiased_int, bn::random::get_unbiased_fixed, bn::seed_random::get_unbiased_int
+ *   and bn::seed_random::get_unbiased_fixed added (thanks <a href="https://github.com/alope107">alope107</a>!).
+ * * H-Blank effects management optimized.
+ * * @ref BN_EWRAM_WAIT_STATE_1 crash after boot documented.
+ * * Slow EWRAM test added.
+ * * IWRAM vs EWRAM stack tests added to the `profiler` coroutine test.
+ * * Slow game pak test improved.
+ * * GCC14 false build warnings in Butano Fighter fixed.
+ *
+ *
+ * @section changelog_17_5_0 17.5.0
+ *
+ * * bn::memory::dma_enabled and bn::memory::set_dma_enabled added.
+ * * bn::fixed explicit conversion operators added.
  * * Custom C++ flags can be specified in the project's `Makefile`.
  * * All logging functions and methods can be called with logging disabled.
+ * * Current <a href="https://github.com/rodri042/gba-link-connection">gba-link-connection</a> implementation
+ *   has been moved to a private namespace to allow using other implementations.
  * * Spelling mistakes corrected.
+ * * Background z order documentation improved.
+ * * <a href="https://github.com/Fralacticus/gba-wav-to-s3m-converter">GBA Wav to S3m Converter</a>
+ *   added to the @ref faq page.
  *
  *
  * @section changelog_17_4_0 17.4.0

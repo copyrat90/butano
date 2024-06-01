@@ -112,6 +112,10 @@
             </dt>
             <dd>Returns the size of the ROM in bytes.</dd>
             <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#a144d0588fd6a9cfa84c60223b880fe1c" class="m-doc">fast_ewram</a>(</span><span class="m-doc-wrap">) -&gt; bool</span>
+            </dt>
+            <dd>Indicates if EWRAM access time is 1+1 clock cycles for sequential accesses or not.</dd>
+            <dt>
               <div class="m-doc-template">template&lt;typename Type&gt;</div>
               <span class="m-doc-wrap-bumper">void <a href="#a6b84181b5e8e1eca783b61f1b0c782ea" class="m-doc">copy</a>(</span><span class="m-doc-wrap">const Type&amp; source_ref,
               int elements,
@@ -149,6 +153,14 @@
               void* destination_ptr)</span>
             </dt>
             <dd>Decompresses the compressed data pointed to by source_ptr in the first bytes of the object pointed to by destination_ptr.</dd>
+            <dt id="a4dbb607c9f3145e6206f164db03bedb6">
+              <span class="m-doc-wrap-bumper">auto <a href="#a4dbb607c9f3145e6206f164db03bedb6" class="m-doc-self">dma_enabled</a>(</span><span class="m-doc-wrap">) -&gt; bool</span>
+            </dt>
+            <dd>Indicates if Butano can use DMA for memory copies when it&#x27;s safe to do so.</dd>
+            <dt id="a3b6126d1d69c0a79e92243b1651cd025">
+              <span class="m-doc-wrap-bumper">void <a href="#a3b6126d1d69c0a79e92243b1651cd025" class="m-doc-self">set_dma_enabled</a>(</span><span class="m-doc-wrap">bool dma_enabled)</span>
+            </dt>
+            <dd>Sets if Butano can use DMA for memory copies when it&#x27;s safe to do so.</dd>
           </dl>
         </section>
         <section>
@@ -252,6 +264,13 @@
               </tbody>
             </table>
 <p>If ptr is <code>nullptr</code>, the function does nothing.</p><p>If ptr was not previously allocated by <a href="namespacebn_1_1memory.html#a0e15ce0e3a49a5bf788a03df92c03b39" class="m-doc">bn::<wbr />memory::<wbr />ewram_alloc</a>, <a href="namespacebn_1_1memory.html#a579352b059552d30877bf352301f210a" class="m-doc">bn::<wbr />memory::<wbr />ewram_calloc</a> or <a href="namespacebn_1_1memory.html#ab88bbdb6d04bef907e2d58b998c824dc" class="m-doc">bn::<wbr />memory::<wbr />ewram_realloc</a>, the behavior is undefined.</p>
+          </div></section>
+          <section class="m-doc-details" id="a144d0588fd6a9cfa84c60223b880fe1c"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">bool bn::<wbr />memory::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a144d0588fd6a9cfa84c60223b880fe1c" class="m-doc-self">fast_ewram</a>(</span><span class="m-doc-wrap">)</span></span>
+            </h3>
+            <p>Indicates if EWRAM access time is 1+1 clock cycles for sequential accesses or not.</p>
+<p>See <a href="group__memory.html#ga97380a972e016b1cff56cccf4b145cc6" class="m-doc">BN_<wbr />EWRAM_<wbr />WAIT_<wbr />STATE_<wbr />1</a>.</p>
           </div></section>
           <section class="m-doc-details" id="a6b84181b5e8e1eca783b61f1b0c782ea"><div>
             <h3>

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2023 Gustavo Valiente gustavo.valiente@protonmail.com
+ * Copyright (c) 2020-2024 Gustavo Valiente gustavo.valiente@protonmail.com
  * zlib License, see LICENSE file.
  */
 
@@ -135,6 +135,14 @@ public:
     }
 
     /**
+     * @brief Returns the integer part using a division.
+     */
+    [[nodiscard]] constexpr explicit operator int() const
+    {
+        return integer();
+    }
+
+    /**
      * @brief Returns the integer part using a right shift.
      */
     [[nodiscard]] constexpr int right_shift_integer() const
@@ -216,11 +224,27 @@ public:
     }
 
     /**
+     * @brief Returns the nearest single precision floating point value.
+     */
+    [[nodiscard]] constexpr explicit operator float() const
+    {
+        return to_float();
+    }
+
+    /**
      * @brief Returns the nearest double precision floating point value.
      */
     [[nodiscard]] constexpr double to_double() const
     {
         return double(_data) / scale();
+    }
+
+    /**
+     * @brief Returns the nearest double precision floating point value.
+     */
+    [[nodiscard]] constexpr explicit operator double() const
+    {
+        return to_double();
     }
 
     /**
@@ -339,6 +363,15 @@ public:
     }
 
     /**
+     * @brief Returns the remainder of the division of this value by the given integer value.
+     */
+    [[nodiscard]] constexpr fixed_t modulo(int value) const
+    {
+        int n = division(value).integer();
+        return *this - (n * value);
+    }
+
+    /**
      * @brief Returns a fixed_t that is formed by changing the sign of this one.
      */
     [[nodiscard]] constexpr fixed_t operator-() const
@@ -409,6 +442,17 @@ public:
     constexpr fixed_t& operator/=(fixed_t other)
     {
         *this = division(other);
+        return *this;
+    }
+
+    /**
+     * @brief Assigns the remainder of the division of this fixed_t by the given divisor.
+     * @param other Valid integer divisor (!= 0).
+     * @return Reference to this.
+     */
+    constexpr fixed_t& operator%=(int other)
+    {
+        *this = modulo(other);
         return *this;
     }
 
@@ -506,6 +550,14 @@ public:
         using output_fixed_t = fixed_t<bn::max(Precision, OtherPrecision)>;
 
         return output_fixed_t(a) / output_fixed_t(b);
+    }
+
+    /**
+     * @brief Returns the remainder of the division of a by b.
+     */
+    [[nodiscard]] constexpr friend fixed_t operator%(fixed_t a, int b)
+    {
+        return a.modulo(b);
     }
 
     /**
