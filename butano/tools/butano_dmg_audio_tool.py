@@ -7,6 +7,7 @@ import os
 import json
 import sys
 
+import file_tools
 from file_info import FileInfo
 from pool import create_pool
 
@@ -136,23 +137,24 @@ class DmgAudioFileInfo:
         name = self.__file_name_no_ext
         header_file_path = build_folder_path + '/bn_dmg_music_items_' + name + '.h'
 
-        with open(header_file_path, 'w') as header_file:
-            include_guard = 'BN_DMG_MUSIC_ITEMS_' + name.upper() + '_H'
-            header_file.write('#ifndef ' + include_guard + '\n')
-            header_file.write('#define ' + include_guard + '\n')
-            header_file.write('\n')
-            header_file.write('#include "bn_dmg_music_item.h"' + '\n')
-            header_file.write('\n')
-            header_file.write('extern const uint8_t ' + output_tag + '[];' + '\n')
-            header_file.write('\n')
-            header_file.write('namespace bn::dmg_music_items' + '\n')
-            header_file.write('{' + '\n')
-            header_file.write('    constexpr inline dmg_music_item ' + name + '(*' + output_tag +
-                              ', dmg_music_type::' + music_type + ');' + '\n')
-            header_file.write('}' + '\n')
-            header_file.write('\n')
-            header_file.write('#endif' + '\n')
-            header_file.write('\n')
+        include_guard = 'BN_DMG_MUSIC_ITEMS_' + name.upper() + '_H'
+        header_file = '#ifndef ' + include_guard + '\n'
+        header_file += '#define ' + include_guard + '\n'
+        header_file += '\n'
+        header_file += '#include "bn_dmg_music_item.h"' + '\n'
+        header_file += '\n'
+        header_file += 'extern const uint8_t ' + output_tag + '[];' + '\n'
+        header_file += '\n'
+        header_file += 'namespace bn::dmg_music_items' + '\n'
+        header_file += '{' + '\n'
+        header_file += '    constexpr inline dmg_music_item ' + name + '(*' + output_tag + \
+                       ', dmg_music_type::' + music_type + ');' + '\n'
+        header_file += '}' + '\n'
+        header_file += '\n'
+        header_file += '#endif' + '\n'
+        header_file += '\n'
+
+        file_tools.write_file_if_changed(header_file_path, header_file)
 
         return header_file_path
 

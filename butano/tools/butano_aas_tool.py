@@ -8,6 +8,9 @@ import wave
 import shutil
 import subprocess
 
+import file_tools
+
+
 def generate_temp_folder(audio_file_paths, build_folder_path):
     temp_folder_path = build_folder_path + '/aas'
 
@@ -37,85 +40,87 @@ def process_audio_files(tool, temp_folder_path, soundbank_header_path, soundbank
 
 
 def write_info_table_file(music_items, sound_items, sound_item_frequencies, output_file_path):
-    with open(output_file_path, 'w') as output_file:
-        output_file.write('#include <stdint.h>' + '\n')
-        output_file.write('\n')
+    output_file = '#include <stdint.h>' + '\n'
+    output_file += '\n'
 
+    for music_item in music_items:
+        output_file += 'extern const uint8_t AAS_DATA_MOD_' + music_item + ';' + '\n'
+
+    for sound_item in sound_items:
+        output_file += 'extern const int8_t* const AAS_DATA_SFX_START_' + sound_item + ';' + '\n'
+        output_file += 'extern const int8_t* const AAS_DATA_SFX_END_' + sound_item + ';' + '\n'
+
+    output_file += '\n'
+
+    output_file += 'const uint8_t* bn_aas_music_ids[] =' + '\n'
+    output_file += '{' + '\n'
+
+    if len(music_items) == 0:
+        output_file += '    0,' + '\n'
+    else:
         for music_item in music_items:
-            output_file.write('extern const uint8_t AAS_DATA_MOD_' + music_item + ';' + '\n')
+            output_file += '    &AAS_DATA_MOD_' + music_item + ',' + '\n'
 
+    output_file += '};' + '\n'
+    output_file += '\n'
+
+    output_file += 'const int8_t* const* bn_aas_sound_starts[] =' + '\n'
+    output_file += '{' + '\n'
+
+    if len(sound_items) == 0:
+        output_file += '    0,' + '\n'
+    else:
         for sound_item in sound_items:
-            output_file.write('extern const int8_t* const AAS_DATA_SFX_START_' + sound_item + ';' + '\n')
-            output_file.write('extern const int8_t* const AAS_DATA_SFX_END_' + sound_item + ';' + '\n')
+            output_file += '    &AAS_DATA_SFX_START_' + sound_item + ',' + '\n'
 
-        output_file.write('\n')
+    output_file += '};' + '\n'
+    output_file += '\n'
 
-        output_file.write('const uint8_t* bn_aas_music_ids[] =' + '\n')
-        output_file.write('{' + '\n')
+    output_file += 'const int8_t* const* bn_aas_sound_ends[] =' + '\n'
+    output_file += '{' + '\n'
 
-        if len(music_items) == 0:
-            output_file.write('    0,' + '\n')
-        else:
-            for music_item in music_items:
-                output_file.write('    &AAS_DATA_MOD_' + music_item + ',' + '\n')
+    if len(sound_items) == 0:
+        output_file += '    0,' + '\n'
+    else:
+        for sound_item in sound_items:
+            output_file += '    &AAS_DATA_SFX_END_' + sound_item + ',' + '\n'
 
-        output_file.write('};' + '\n')
-        output_file.write('\n')
+    output_file += '};' + '\n'
+    output_file += '\n'
 
-        output_file.write('const int8_t* const* bn_aas_sound_starts[] =' + '\n')
-        output_file.write('{' + '\n')
+    output_file += 'const int bn_aas_sound_frequencies[] =' + '\n'
+    output_file += '{' + '\n'
 
-        if len(sound_items) == 0:
-            output_file.write('    0,' + '\n')
-        else:
-            for sound_item in sound_items:
-                output_file.write('    &AAS_DATA_SFX_START_' + sound_item + ',' + '\n')
+    if len(sound_item_frequencies) == 0:
+        output_file += '    0,' + '\n'
+    else:
+        for sound_item_frequency in sound_item_frequencies:
+            output_file += '    ' + str(sound_item_frequency) + ',' + '\n'
 
-        output_file.write('};' + '\n')
-        output_file.write('\n')
+    output_file += '};' + '\n'
 
-        output_file.write('const int8_t* const* bn_aas_sound_ends[] =' + '\n')
-        output_file.write('{' + '\n')
-
-        if len(sound_items) == 0:
-            output_file.write('    0,' + '\n')
-        else:
-            for sound_item in sound_items:
-                output_file.write('    &AAS_DATA_SFX_END_' + sound_item + ',' + '\n')
-
-        output_file.write('};' + '\n')
-        output_file.write('\n')
-
-        output_file.write('const int bn_aas_sound_frequencies[] =' + '\n')
-        output_file.write('{' + '\n')
-
-        if len(sound_item_frequencies) == 0:
-            output_file.write('    0,' + '\n')
-        else:
-            for sound_item_frequency in sound_item_frequencies:
-                output_file.write('    ' + str(sound_item_frequency) + ',' + '\n')
-
-        output_file.write('};' + '\n')
+    file_tools.write_file_if_changed(output_file_path, output_file)
 
 
 def write_output_file(items, include_guard, include_file, namespace, item_class, output_file_path):
     if len(items) > 0:
-        with open(output_file_path, 'w') as output_file:
-            output_file.write('#ifndef ' + include_guard + '\n')
-            output_file.write('#define ' + include_guard + '\n')
-            output_file.write('\n')
-            output_file.write('#include "' + include_file + '"' + '\n')
-            output_file.write('\n')
-            output_file.write('namespace ' + namespace + '\n')
-            output_file.write('{' + '\n')
+        output_file = '#ifndef ' + include_guard + '\n'
+        output_file += '#define ' + include_guard + '\n'
+        output_file += '\n'
+        output_file += '#include "' + include_file + '"' + '\n'
+        output_file += '\n'
+        output_file += 'namespace ' + namespace + '\n'
+        output_file += '{' + '\n'
 
-            for index, item in enumerate(items):
-                output_file.write('    constexpr inline ' + item_class + ' ' + item + '(' + str(index) + ');' + '\n')
+        for index, item in enumerate(items):
+            output_file += '    constexpr inline ' + item_class + ' ' + item + '(' + str(index) + ');' + '\n'
 
-            output_file.write('}' + '\n')
-            output_file.write('\n')
-            output_file.write('#endif' + '\n')
-            output_file.write('\n')
+        output_file += '}' + '\n'
+        output_file += '\n'
+        output_file += '#endif' + '\n'
+        output_file += '\n'
+
+        file_tools.write_file_if_changed(output_file_path, output_file)
 
         print('    ' + item_class + 's file written in ' + output_file_path)
     else:
@@ -124,36 +129,37 @@ def write_output_file(items, include_guard, include_file, namespace, item_class,
 
 
 def write_output_info_file(items, include_guard, include_file, namespace, item_class, output_file_path):
-    with open(output_file_path, 'w') as output_file:
-        output_file.write('#ifndef ' + include_guard + '\n')
-        output_file.write('#define ' + include_guard + '\n')
-        output_file.write('\n')
-        output_file.write('#include "bn_span.h"' + '\n')
-        output_file.write('#include "' + include_file + '"' + '\n')
-        output_file.write('#include "bn_string_view.h"' + '\n')
-        output_file.write('\n')
-        output_file.write('namespace ' + namespace + '\n')
-        output_file.write('{' + '\n')
+    output_file = '#ifndef ' + include_guard + '\n'
+    output_file += '#define ' + include_guard + '\n'
+    output_file += '\n'
+    output_file += '#include "bn_span.h"' + '\n'
+    output_file += '#include "' + include_file + '"' + '\n'
+    output_file += '#include "bn_string_view.h"' + '\n'
+    output_file += '\n'
+    output_file += 'namespace ' + namespace + '\n'
+    output_file += '{' + '\n'
 
-        pair_class = 'pair<' + item_class + ', string_view>'
+    pair_class = 'pair<' + item_class + ', string_view>'
 
-        if len(items) > 0:
-            output_file.write('    constexpr inline ' + pair_class + ' array[] = {' + '\n')
+    if len(items) > 0:
+        output_file += '    constexpr inline ' + pair_class + ' array[] = {' + '\n'
 
-            for index, item in enumerate(items):
-                output_file.write('        make_pair(' + item_class + '(' + str(index) +
-                                  '), string_view("' + item + '")),' + '\n')
+        for index, item in enumerate(items):
+            output_file += '        make_pair(' + item_class + '(' + str(index) + \
+                           '), string_view("' + item + '")),' + '\n'
 
-            output_file.write('    };' + '\n')
-            output_file.write('\n')
-            output_file.write('    constexpr inline span<const ' + pair_class + '> span(array);' + '\n')
-        else:
-            output_file.write('    constexpr inline span<const ' + pair_class + '> span;' + '\n')
+        output_file += '    };' + '\n'
+        output_file += '\n'
+        output_file += '    constexpr inline span<const ' + pair_class + '> span(array);' + '\n'
+    else:
+        output_file += '    constexpr inline span<const ' + pair_class + '> span;' + '\n'
 
-        output_file.write('}' + '\n')
-        output_file.write('\n')
-        output_file.write('#endif' + '\n')
-        output_file.write('\n')
+    output_file += '}' + '\n'
+    output_file += '\n'
+    output_file += '#endif' + '\n'
+    output_file += '\n'
+
+    file_tools.write_file_if_changed(output_file_path, output_file)
 
     print('    ' + item_class + 's_info file written in ' + output_file_path)
 

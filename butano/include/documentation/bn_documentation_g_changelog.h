@@ -18,6 +18,7 @@
  *   <a href="https://github.com/felixjones/stdgba">stdgba</a>.
  * * <a href="https://blocksds.skylyrac.net/maxmod/index.html">Maxmod</a> updated to 1.19.1.
  * * <a href="https://github.com/copyrat90/advgm">advgm</a> updated to 0.2.0.
+ * * Header files generated from tools are not written if their content has not changed.
  * * Heap test fixed.
  *
  *

@@ -6,6 +6,8 @@ zlib License, see LICENSE file.
 import os
 import subprocess
 
+import file_tools
+
 
 def process_audio_files(tool, audio_file_paths, soundbank_bin_path, soundbank_header_path, build_folder_path):
     command = [tool]
@@ -34,22 +36,23 @@ def process_audio_files(tool, audio_file_paths, soundbank_bin_path, soundbank_he
 
 def write_output_file(items, include_guard, include_file, namespace, item_class, output_file_path):
     if len(items) > 0:
-        with open(output_file_path, 'w') as output_file:
-            output_file.write('#ifndef ' + include_guard + '\n')
-            output_file.write('#define ' + include_guard + '\n')
-            output_file.write('\n')
-            output_file.write('#include "' + include_file + '"' + '\n')
-            output_file.write('\n')
-            output_file.write('namespace ' + namespace + '\n')
-            output_file.write('{' + '\n')
+        output_file = '#ifndef ' + include_guard + '\n'
+        output_file += '#define ' + include_guard + '\n'
+        output_file += '\n'
+        output_file += '#include "' + include_file + '"' + '\n'
+        output_file += '\n'
+        output_file += 'namespace ' + namespace + '\n'
+        output_file += '{' + '\n'
 
-            for item in items:
-                output_file.write('    constexpr inline ' + item_class + ' ' + item[0] + '(' + item[1] + ');' + '\n')
+        for item in items:
+            output_file += '    constexpr inline ' + item_class + ' ' + item[0] + '(' + item[1] + ');' + '\n'
 
-            output_file.write('}' + '\n')
-            output_file.write('\n')
-            output_file.write('#endif' + '\n')
-            output_file.write('\n')
+        output_file += '}' + '\n'
+        output_file += '\n'
+        output_file += '#endif' + '\n'
+        output_file += '\n'
+
+        file_tools.write_file_if_changed(output_file_path, output_file)
 
         print('    ' + item_class + 's file written in ' + output_file_path)
     else:
@@ -58,36 +61,37 @@ def write_output_file(items, include_guard, include_file, namespace, item_class,
 
 
 def write_output_info_file(items, include_guard, include_file, namespace, item_class, output_file_path):
-    with open(output_file_path, 'w') as output_file:
-        output_file.write('#ifndef ' + include_guard + '\n')
-        output_file.write('#define ' + include_guard + '\n')
-        output_file.write('\n')
-        output_file.write('#include "bn_span.h"' + '\n')
-        output_file.write('#include "' + include_file + '"' + '\n')
-        output_file.write('#include "bn_string_view.h"' + '\n')
-        output_file.write('\n')
-        output_file.write('namespace ' + namespace + '\n')
-        output_file.write('{' + '\n')
+    output_file = '#ifndef ' + include_guard + '\n'
+    output_file += '#define ' + include_guard + '\n'
+    output_file += '\n'
+    output_file += '#include "bn_span.h"' + '\n'
+    output_file += '#include "' + include_file + '"' + '\n'
+    output_file += '#include "bn_string_view.h"' + '\n'
+    output_file += '\n'
+    output_file += 'namespace ' + namespace + '\n'
+    output_file += '{' + '\n'
 
-        pair_class = 'pair<' + item_class + ', string_view>'
+    pair_class = 'pair<' + item_class + ', string_view>'
 
-        if len(items) > 0:
-            output_file.write('    constexpr inline ' + pair_class + ' array[] = {' + '\n')
+    if len(items) > 0:
+        output_file += '    constexpr inline ' + pair_class + ' array[] = {' + '\n'
 
-            for item in items:
-                output_file.write('        make_pair(' + item_class + '(' + item[1] +
-                                  '), string_view("' + item[0] + '")),' + '\n')
+        for item in items:
+            output_file += '        make_pair(' + item_class + '(' + item[1] + \
+                           '), string_view("' + item[0] + '")),' + '\n'
 
-            output_file.write('    };' + '\n')
-            output_file.write('\n')
-            output_file.write('    constexpr inline span<const ' + pair_class + '> span(array);' + '\n')
-        else:
-            output_file.write('    constexpr inline span<const ' + pair_class + '> span;' + '\n')
+        output_file += '    };' + '\n'
+        output_file += '\n'
+        output_file += '    constexpr inline span<const ' + pair_class + '> span(array);' + '\n'
+    else:
+        output_file += '    constexpr inline span<const ' + pair_class + '> span;' + '\n'
 
-        output_file.write('}' + '\n')
-        output_file.write('\n')
-        output_file.write('#endif' + '\n')
-        output_file.write('\n')
+    output_file += '}' + '\n'
+    output_file += '\n'
+    output_file += '#endif' + '\n'
+    output_file += '\n'
+
+    file_tools.write_file_if_changed(output_file_path, output_file)
 
     print('    ' + item_class + 's_info file written in ' + output_file_path)
 

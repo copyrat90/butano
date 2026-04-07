@@ -10,6 +10,7 @@ import string
 import subprocess
 import sys
 
+import file_tools
 from bmp import BMP
 from file_info import FileInfo
 from pool import create_pool
@@ -276,7 +277,7 @@ class SpriteItem:
         header_file_path = self.__build_folder_path + '/bn_sprite_items_' + name + '.h'
 
         with open(grit_file_path, 'r') as grit_file:
-            grit_data = grit_file.read()
+            grit_data = file_tools.remove_grit_timestamp(grit_file.read())
             grit_data = grit_data.replace('unsigned int', 'bn::tile')
             grit_data = grit_data.replace('unsigned short', 'bn::color')
 
@@ -308,29 +309,30 @@ class SpriteItem:
         grit_data = re.sub(r'Tiles\[([0-9]+)]', 'Tiles[' + str(tiles_count) + ']', grit_data)
         grit_data = re.sub(r'Pal\[([0-9]+)]', 'Pal[' + str(self.__colors_count) + ']', grit_data)
 
-        with open(header_file_path, 'w') as header_file:
-            include_guard = 'BN_SPRITE_ITEMS_' + name.upper() + '_H'
-            header_file.write('#ifndef ' + include_guard + '\n')
-            header_file.write('#define ' + include_guard + '\n')
-            header_file.write('\n')
-            header_file.write('#include "bn_sprite_item.h"' + '\n')
-            header_file.write(grit_data)
-            header_file.write('\n')
-            header_file.write('namespace bn::sprite_items' + '\n')
-            header_file.write('{' + '\n')
-            header_file.write('    constexpr inline sprite_item ' + name + '(' +
-                              'sprite_shape_size(sprite_shape::' + self.__shape + ', ' +
-                              'sprite_size::' + self.__size + '), ' + '\n            ' +
-                              'sprite_tiles_item(span<const tile>(' + name + '_bn_gfxTiles, ' +
-                              str(tiles_count) + '), ' + bpp_mode_label + ', ' + compression_label(tiles_compression) +
-                              ', ' + str(self.__graphics) + '), ' + '\n            ' +
-                              'sprite_palette_item(span<const color>(' + name + '_bn_gfxPal, ' +
-                              str(self.__colors_count) + '), ' + bpp_mode_label + ', ' +
-                              compression_label(palette_compression) + '));\n')
-            header_file.write('}' + '\n')
-            header_file.write('\n')
-            header_file.write('#endif' + '\n')
-            header_file.write('\n')
+        include_guard = 'BN_SPRITE_ITEMS_' + name.upper() + '_H'
+        header_file = '#ifndef ' + include_guard + '\n'
+        header_file += '#define ' + include_guard + '\n'
+        header_file += '\n'
+        header_file += '#include "bn_sprite_item.h"' + '\n'
+        header_file += grit_data
+        header_file += '\n'
+        header_file += 'namespace bn::sprite_items' + '\n'
+        header_file += '{' + '\n'
+        header_file += '    constexpr inline sprite_item ' + name + '(' + \
+                       'sprite_shape_size(sprite_shape::' + self.__shape + ', ' + \
+                       'sprite_size::' + self.__size + '), ' + '\n            ' + \
+                       'sprite_tiles_item(span<const tile>(' + name + '_bn_gfxTiles, ' + \
+                       str(tiles_count) + '), ' + bpp_mode_label + ', ' + compression_label(tiles_compression) + \
+                       ', ' + str(self.__graphics) + '), ' + '\n            ' + \
+                       'sprite_palette_item(span<const color>(' + name + '_bn_gfxPal, ' + \
+                       str(self.__colors_count) + '), ' + bpp_mode_label + ', ' + \
+                       compression_label(palette_compression) + '));\n'
+        header_file += '}' + '\n'
+        header_file += '\n'
+        header_file += '#endif' + '\n'
+        header_file += '\n'
+
+        file_tools.write_file_if_changed(header_file_path, header_file)
 
         return total_size, header_file_path
 
@@ -425,7 +427,7 @@ class SpriteTilesItem:
         header_file_path = self.__build_folder_path + '/bn_sprite_tiles_items_' + name + '.h'
 
         with open(grit_file_path, 'r') as grit_file:
-            grit_data = grit_file.read()
+            grit_data = file_tools.remove_grit_timestamp(grit_file.read())
             grit_data = grit_data.replace('unsigned int', 'bn::tile')
 
             for grit_line in grit_data.splitlines():
@@ -455,29 +457,30 @@ class SpriteTilesItem:
 
         grit_data = re.sub(r'Tiles\[([0-9]+)]', 'Tiles[' + str(tiles_count) + ']', grit_data)
 
-        with open(header_file_path, 'w') as header_file:
-            include_guard = 'BN_SPRITE_TILES_ITEMS_' + name.upper() + '_H'
-            header_file.write('#ifndef ' + include_guard + '\n')
-            header_file.write('#define ' + include_guard + '\n')
-            header_file.write('\n')
-            header_file.write('#include "bn_sprite_tiles_item.h"' + '\n')
-            header_file.write('#include "bn_sprite_shape_size.h"' + '\n')
-            header_file.write(grit_data)
-            header_file.write('\n')
-            header_file.write('namespace bn::sprite_tiles_items' + '\n')
-            header_file.write('{' + '\n')
-            header_file.write('    constexpr inline sprite_tiles_item ' + name + '(span<const tile>(' +
-                              name + '_bn_gfxTiles, ' + str(tiles_count) + '), ' + '\n            ' +
-                              bpp_mode_label + ', ' + compression_label(compression) + ', ' +
-                              str(self.__graphics) + ');' + '\n')
-            header_file.write('\n')
-            header_file.write('    constexpr inline sprite_shape_size ' + name +
-                              '_shape_size(sprite_shape::' + self.__shape + ', ' +
-                              'sprite_size::' + self.__size + ');' + '\n')
-            header_file.write('}' + '\n')
-            header_file.write('\n')
-            header_file.write('#endif' + '\n')
-            header_file.write('\n')
+        include_guard = 'BN_SPRITE_TILES_ITEMS_' + name.upper() + '_H'
+        header_file = '#ifndef ' + include_guard + '\n'
+        header_file += '#define ' + include_guard + '\n'
+        header_file += '\n'
+        header_file += '#include "bn_sprite_tiles_item.h"' + '\n'
+        header_file += '#include "bn_sprite_shape_size.h"' + '\n'
+        header_file += grit_data
+        header_file += '\n'
+        header_file += 'namespace bn::sprite_tiles_items' + '\n'
+        header_file += '{' + '\n'
+        header_file += '    constexpr inline sprite_tiles_item ' + name + '(span<const tile>(' + \
+                       name + '_bn_gfxTiles, ' + str(tiles_count) + '), ' + '\n            ' + \
+                       bpp_mode_label + ', ' + compression_label(compression) + ', ' + \
+                       str(self.__graphics) + ');' + '\n'
+        header_file += '\n'
+        header_file += '    constexpr inline sprite_shape_size ' + name + \
+                       '_shape_size(sprite_shape::' + self.__shape + ', ' + \
+                       'sprite_size::' + self.__size + ');' + '\n'
+        header_file += '}' + '\n'
+        header_file += '\n'
+        header_file += '#endif' + '\n'
+        header_file += '\n'
+
+        file_tools.write_file_if_changed(header_file_path, header_file)
 
         return total_size, header_file_path
 
@@ -545,7 +548,7 @@ class SpritePaletteItem:
         header_file_path = self.__build_folder_path + '/bn_sprite_palette_items_' + name + '.h'
 
         with open(grit_file_path, 'r') as grit_file:
-            grit_data = grit_file.read()
+            grit_data = file_tools.remove_grit_timestamp(grit_file.read())
             grit_data = grit_data.replace('unsigned short', 'bn::color')
 
             for grit_line in grit_data.splitlines():
@@ -566,24 +569,25 @@ class SpritePaletteItem:
 
         grit_data = re.sub(r'Pal\[([0-9]+)]', 'Pal[' + str(self.__colors_count) + ']', grit_data)
 
-        with open(header_file_path, 'w') as header_file:
-            include_guard = 'BN_SPRITE_PALETTE_ITEMS_' + name.upper() + '_H'
-            header_file.write('#ifndef ' + include_guard + '\n')
-            header_file.write('#define ' + include_guard + '\n')
-            header_file.write('\n')
-            header_file.write('#include "bn_sprite_palette_item.h"' + '\n')
-            header_file.write(grit_data)
-            header_file.write('\n')
-            header_file.write('namespace bn::sprite_palette_items' + '\n')
-            header_file.write('{' + '\n')
-            header_file.write('    constexpr inline sprite_palette_item ' + name + '(' +
-                              'span<const color>(' + name + '_bn_gfxPal, ' +
-                              str(self.__colors_count) + '), ' + '\n            ' +
-                              bpp_mode_label + ', ' + compression_label(compression) + ');' + '\n')
-            header_file.write('}' + '\n')
-            header_file.write('\n')
-            header_file.write('#endif' + '\n')
-            header_file.write('\n')
+        include_guard = 'BN_SPRITE_PALETTE_ITEMS_' + name.upper() + '_H'
+        header_file = '#ifndef ' + include_guard + '\n'
+        header_file += '#define ' + include_guard + '\n'
+        header_file += '\n'
+        header_file += '#include "bn_sprite_palette_item.h"' + '\n'
+        header_file += grit_data
+        header_file += '\n'
+        header_file += 'namespace bn::sprite_palette_items' + '\n'
+        header_file += '{' + '\n'
+        header_file += '    constexpr inline sprite_palette_item ' + name + '(' + \
+                       'span<const color>(' + name + '_bn_gfxPal, ' + \
+                       str(self.__colors_count) + '), ' + '\n            ' + \
+                       bpp_mode_label + ', ' + compression_label(compression) + ');' + '\n'
+        header_file += '}' + '\n'
+        header_file += '\n'
+        header_file += '#endif' + '\n'
+        header_file += '\n'
+
+        file_tools.write_file_if_changed(header_file_path, header_file)
 
         return total_size, header_file_path
 
@@ -802,7 +806,7 @@ class RegularBgItem:
         header_file_path = self.__build_folder_path + '/bn_regular_bg_items_' + name + '.h'
 
         with open(grit_file_path, 'r') as grit_file:
-            grit_data = grit_file.read()
+            grit_data = file_tools.remove_grit_timestamp(grit_file.read())
             grit_data = grit_data.replace('unsigned int', 'bn::tile', 1)
             grit_data = grit_data.replace('unsigned short', 'bn::regular_bg_map_cell', 1)
 
@@ -840,41 +844,42 @@ class RegularBgItem:
         grit_data = re.sub(r'Tiles\[([0-9]+)]', 'Tiles[' + str(tiles_count) + ']', grit_data)
         grit_data = re.sub(r'Pal\[([0-9]+)]', 'Pal[' + str(self.__colors_count) + ']', grit_data)
 
-        with open(header_file_path, 'w') as header_file:
-            include_guard = 'BN_REGULAR_BG_ITEMS_' + name.upper() + '_H'
-            header_file.write('#ifndef ' + include_guard + '\n')
-            header_file.write('#define ' + include_guard + '\n')
-            header_file.write('\n')
-            header_file.write('#include "bn_regular_bg_item.h"' + '\n')
-            header_file.write(grit_data)
-            header_file.write('\n')
+        include_guard = 'BN_REGULAR_BG_ITEMS_' + name.upper() + '_H'
+        header_file = '#ifndef ' + include_guard + '\n'
+        header_file += '#define ' + include_guard + '\n'
+        header_file += '\n'
+        header_file += '#include "bn_regular_bg_item.h"' + '\n'
+        header_file += grit_data
+        header_file += '\n'
 
-            if self.__palette_item is not None:
-                header_file.write('#include "bn_bg_palette_items_' + self.__palette_item + '.h"' + '\n')
-                header_file.write('\n')
+        if self.__palette_item is not None:
+            header_file += '#include "bn_bg_palette_items_' + self.__palette_item + '.h"' + '\n'
+            header_file += '\n'
 
-            header_file.write('namespace bn::regular_bg_items' + '\n')
-            header_file.write('{' + '\n')
-            header_file.write('    constexpr inline regular_bg_item ' + name + '(' + '\n            ' +
-                              'regular_bg_tiles_item(span<const tile>(' + name + '_bn_gfxTiles, ' +
-                              str(tiles_count) + '), ' + bpp_mode_label + ', ' + compression_label(tiles_compression) +
-                              '), ' + '\n            ')
+        header_file += 'namespace bn::regular_bg_items' + '\n'
+        header_file += '{' + '\n'
+        header_file += '    constexpr inline regular_bg_item ' + name + '(' + '\n            ' + \
+                       'regular_bg_tiles_item(span<const tile>(' + name + '_bn_gfxTiles, ' + \
+                       str(tiles_count) + '), ' + bpp_mode_label + ', ' + compression_label(tiles_compression) + \
+                       '), ' + '\n            '
 
-            if self.__palette_item is None:
-                header_file.write('bg_palette_item(span<const color>(' + name + '_bn_gfxPal, ' +
-                                  str(self.__colors_count) + '), ' + bpp_mode_label + ', ' +
-                                  compression_label(palette_compression) + '),' + '\n            ')
-            else:
-                header_file.write('bn::bg_palette_items::' + self.__palette_item + ',' + '\n            ')
+        if self.__palette_item is None:
+            header_file += 'bg_palette_item(span<const color>(' + name + '_bn_gfxPal, ' + \
+                              str(self.__colors_count) + '), ' + bpp_mode_label + ', ' + \
+                              compression_label(palette_compression) + '),' + '\n            '
+        else:
+            header_file += 'bn::bg_palette_items::' + self.__palette_item + ',' + '\n            '
 
-            header_file.write('regular_bg_map_item(' + name + '_bn_gfxMap[0], ' +
-                              'size(' + str(self.__width) + ', ' + str(self.__height) + '), ' +
-                              compression_label(map_compression) + ', ' + str(self.__maps) + ', ' +
-                              str(self.__big).lower() + '));' + '\n')
-            header_file.write('}' + '\n')
-            header_file.write('\n')
-            header_file.write('#endif' + '\n')
-            header_file.write('\n')
+        header_file += 'regular_bg_map_item(' + name + '_bn_gfxMap[0], ' + \
+                       'size(' + str(self.__width) + ', ' + str(self.__height) + '), ' + \
+                       compression_label(map_compression) + ', ' + str(self.__maps) + ', ' + \
+                       str(self.__big).lower() + '));' + '\n'
+        header_file += '}' + '\n'
+        header_file += '\n'
+        header_file += '#endif' + '\n'
+        header_file += '\n'
+
+        file_tools.write_file_if_changed(header_file_path, header_file)
 
         return total_size, header_file_path
 
@@ -1010,7 +1015,7 @@ class RegularBgTilesItem:
         header_file_path = self.__build_folder_path + '/bn_regular_bg_tiles_items_' + name + '.h'
 
         with open(grit_file_path, 'r') as grit_file:
-            grit_data = grit_file.read()
+            grit_data = file_tools.remove_grit_timestamp(grit_file.read())
             grit_data = grit_data.replace('unsigned int', 'bn::tile', 1)
 
             if self.__generate_palette:
@@ -1046,36 +1051,37 @@ class RegularBgTilesItem:
         if self.__generate_palette:
             grit_data = re.sub(r'Pal\[([0-9]+)]', 'Pal[' + str(self.__palette_colors_count) + ']', grit_data)
 
-        with open(header_file_path, 'w') as header_file:
-            include_guard = 'BN_REGULAR_BG_TILES_ITEMS_' + name.upper() + '_H'
-            header_file.write('#ifndef ' + include_guard + '\n')
-            header_file.write('#define ' + include_guard + '\n')
-            header_file.write('\n')
-            header_file.write('#include "bn_regular_bg_tiles_item.h"' + '\n')
+        include_guard = 'BN_REGULAR_BG_TILES_ITEMS_' + name.upper() + '_H'
+        header_file = '#ifndef ' + include_guard + '\n'
+        header_file += '#define ' + include_guard + '\n'
+        header_file += '\n'
+        header_file += '#include "bn_regular_bg_tiles_item.h"' + '\n'
 
-            if self.__generate_palette:
-                header_file.write('#include "bn_bg_palette_item.h"' + '\n')
+        if self.__generate_palette:
+            header_file += '#include "bn_bg_palette_item.h"' + '\n'
 
-            header_file.write(grit_data)
-            header_file.write('\n')
-            header_file.write('namespace bn::regular_bg_tiles_items' + '\n')
-            header_file.write('{' + '\n')
-            header_file.write('    constexpr inline regular_bg_tiles_item ' + name + '(' + '\n            ' +
-                              'span<const tile>(' + name + '_bn_gfxTiles, ' +
-                              str(tiles_count) + '), ' + bpp_mode_label + ', ' + compression_label(tiles_compression) +
-                              ');' + '\n')
+        header_file += grit_data
+        header_file += '\n'
+        header_file += 'namespace bn::regular_bg_tiles_items' + '\n'
+        header_file += '{' + '\n'
+        header_file += '    constexpr inline regular_bg_tiles_item ' + name + '(' + '\n            ' + \
+                       'span<const tile>(' + name + '_bn_gfxTiles, ' + \
+                       str(tiles_count) + '), ' + bpp_mode_label + ', ' + compression_label(tiles_compression) + \
+                       ');' + '\n'
 
-            if self.__generate_palette:
-                header_file.write('\n')
-                header_file.write('    constexpr inline bg_palette_item ' + name + '_palette(' +
-                                  'span<const color>(' + name + '_bn_gfxPal, ' +
-                                  str(self.__palette_colors_count) + '), ' + '\n            ' +
-                                  bpp_mode_label + ', ' + compression_label(palette_compression) + ');' + '\n')
+        if self.__generate_palette:
+            header_file += '\n'
+            header_file += '    constexpr inline bg_palette_item ' + name + '_palette(' + \
+                           'span<const color>(' + name + '_bn_gfxPal, ' + \
+                           str(self.__palette_colors_count) + '), ' + '\n            ' + \
+                           bpp_mode_label + ', ' + compression_label(palette_compression) + ');' + '\n'
 
-            header_file.write('}' + '\n')
-            header_file.write('\n')
-            header_file.write('#endif' + '\n')
-            header_file.write('\n')
+        header_file += '}' + '\n'
+        header_file += '\n'
+        header_file += '#endif' + '\n'
+        header_file += '\n'
+
+        file_tools.write_file_if_changed(header_file_path, header_file)
 
         return total_size, header_file_path
 
@@ -1279,7 +1285,7 @@ class AffineBgItem:
         header_file_path = self.__build_folder_path + '/bn_affine_bg_items_' + name + '.h'
 
         with open(grit_file_path, 'r') as grit_file:
-            grit_data = grit_file.read()
+            grit_data = file_tools.remove_grit_timestamp(grit_file.read())
             grit_data = grit_data.replace('unsigned int', 'bn::tile', 1)
             grit_data = grit_data.replace('unsigned char', 'bn::affine_bg_map_cell', 1)
 
@@ -1309,41 +1315,42 @@ class AffineBgItem:
         grit_data = re.sub(r'Tiles\[([0-9]+)]', 'Tiles[' + str(tiles_count) + ']', grit_data)
         grit_data = re.sub(r'Pal\[([0-9]+)]', 'Pal[' + str(self.__colors_count) + ']', grit_data)
 
-        with open(header_file_path, 'w') as header_file:
-            include_guard = 'BN_AFFINE_BG_ITEMS_' + name.upper() + '_H'
-            header_file.write('#ifndef ' + include_guard + '\n')
-            header_file.write('#define ' + include_guard + '\n')
-            header_file.write('\n')
-            header_file.write('#include "bn_affine_bg_item.h"' + '\n')
-            header_file.write(grit_data)
-            header_file.write('\n')
+        include_guard = 'BN_AFFINE_BG_ITEMS_' + name.upper() + '_H'
+        header_file = '#ifndef ' + include_guard + '\n'
+        header_file += '#define ' + include_guard + '\n'
+        header_file += '\n'
+        header_file += '#include "bn_affine_bg_item.h"' + '\n'
+        header_file += grit_data
+        header_file += '\n'
 
-            if self.__palette_item is not None:
-                header_file.write('#include "bn_bg_palette_items_' + self.__palette_item + '.h"' + '\n')
-                header_file.write('\n')
+        if self.__palette_item is not None:
+            header_file += '#include "bn_bg_palette_items_' + self.__palette_item + '.h"' + '\n'
+            header_file += '\n'
 
-            header_file.write('namespace bn::affine_bg_items' + '\n')
-            header_file.write('{' + '\n')
-            header_file.write('    constexpr inline affine_bg_item ' + name + '(' + '\n            ' +
-                              'affine_bg_tiles_item(span<const tile>(' + name + '_bn_gfxTiles, ' +
-                              str(tiles_count) + '), ' + compression_label(tiles_compression) +
-                              '), ' + '\n            ')
+        header_file += 'namespace bn::affine_bg_items' + '\n'
+        header_file += '{' + '\n'
+        header_file += '    constexpr inline affine_bg_item ' + name + '(' + '\n            ' + \
+                       'affine_bg_tiles_item(span<const tile>(' + name + '_bn_gfxTiles, ' + \
+                       str(tiles_count) + '), ' + compression_label(tiles_compression) + \
+                       '), ' + '\n            '
 
-            if self.__palette_item is None:
-                header_file.write('bg_palette_item(span<const color>(' + name + '_bn_gfxPal, ' +
-                                  str(self.__colors_count) + '), bpp_mode::BPP_8, ' +
-                                  compression_label(palette_compression) + '),' + '\n            ')
-            else:
-                header_file.write('bn::bg_palette_items::' + self.__palette_item + ',' + '\n            ')
+        if self.__palette_item is None:
+            header_file += 'bg_palette_item(span<const color>(' + name + '_bn_gfxPal, ' + \
+                           str(self.__colors_count) + '), bpp_mode::BPP_8, ' + \
+                           compression_label(palette_compression) + '),' + '\n            '
+        else:
+            header_file += 'bn::bg_palette_items::' + self.__palette_item + ',' + '\n            '
 
-            header_file.write('affine_bg_map_item(' + name + '_bn_gfxMap[0], ' +
-                              'size(' + str(self.__width) + ', ' + str(self.__height) + '), ' +
-                              compression_label(map_compression) + ', ' + str(self.__maps) + ', ' +
-                              str(self.__big).lower() + '));' + '\n')
-            header_file.write('}' + '\n')
-            header_file.write('\n')
-            header_file.write('#endif' + '\n')
-            header_file.write('\n')
+        header_file += 'affine_bg_map_item(' + name + '_bn_gfxMap[0], ' + \
+                       'size(' + str(self.__width) + ', ' + str(self.__height) + '), ' + \
+                       compression_label(map_compression) + ', ' + str(self.__maps) + ', ' + \
+                       str(self.__big).lower() + '));' + '\n'
+        header_file += '}' + '\n'
+        header_file += '\n'
+        header_file += '#endif' + '\n'
+        header_file += '\n'
+
+        file_tools.write_file_if_changed(header_file_path, header_file)
 
         return total_size, header_file_path
 
@@ -1457,7 +1464,7 @@ class AffineBgTilesItem:
         header_file_path = self.__build_folder_path + '/bn_affine_bg_tiles_items_' + name + '.h'
 
         with open(grit_file_path, 'r') as grit_file:
-            grit_data = grit_file.read()
+            grit_data = file_tools.remove_grit_timestamp(grit_file.read())
             grit_data = grit_data.replace('unsigned int', 'bn::tile', 1)
 
             if self.__generate_palette:
@@ -1492,36 +1499,37 @@ class AffineBgTilesItem:
         if self.__generate_palette:
             grit_data = re.sub(r'Pal\[([0-9]+)]', 'Pal[' + str(self.__palette_colors_count) + ']', grit_data)
 
-        with open(header_file_path, 'w') as header_file:
-            include_guard = 'BN_AFFINE_BG_TILES_ITEMS_' + name.upper() + '_H'
-            header_file.write('#ifndef ' + include_guard + '\n')
-            header_file.write('#define ' + include_guard + '\n')
-            header_file.write('\n')
-            header_file.write('#include "bn_affine_bg_tiles_item.h"' + '\n')
+        include_guard = 'BN_AFFINE_BG_TILES_ITEMS_' + name.upper() + '_H'
+        header_file = '#ifndef ' + include_guard + '\n'
+        header_file += '#define ' + include_guard + '\n'
+        header_file += '\n'
+        header_file += '#include "bn_affine_bg_tiles_item.h"' + '\n'
 
-            if self.__generate_palette:
-                header_file.write('#include "bn_bg_palette_item.h"' + '\n')
+        if self.__generate_palette:
+            header_file += '#include "bn_bg_palette_item.h"' + '\n'
 
-            header_file.write(grit_data)
-            header_file.write('\n')
-            header_file.write('namespace bn::affine_bg_tiles_items' + '\n')
-            header_file.write('{' + '\n')
-            header_file.write('    constexpr inline affine_bg_tiles_item ' + name + '(' + '\n            ' +
-                              'span<const tile>(' + name + '_bn_gfxTiles, ' +
-                              str(tiles_count) + '), ' + compression_label(tiles_compression) +
-                              ');' + '\n')
+        header_file += grit_data
+        header_file += '\n'
+        header_file += 'namespace bn::affine_bg_tiles_items' + '\n'
+        header_file += '{' + '\n'
+        header_file += '    constexpr inline affine_bg_tiles_item ' + name + '(' + '\n            ' + \
+                       'span<const tile>(' + name + '_bn_gfxTiles, ' + \
+                       str(tiles_count) + '), ' + compression_label(tiles_compression) + \
+                       ');' + '\n'
 
-            if self.__generate_palette:
-                header_file.write('\n')
-                header_file.write('    constexpr inline bg_palette_item ' + name + '_palette(' +
-                                  'span<const color>(' + name + '_bn_gfxPal, ' +
-                                  str(self.__palette_colors_count) + '), ' + '\n            ' +
-                                  'bpp_mode::BPP_8, ' + compression_label(palette_compression) + ');' + '\n')
+        if self.__generate_palette:
+            header_file += '\n'
+            header_file += '    constexpr inline bg_palette_item ' + name + '_palette(' + \
+                           'span<const color>(' + name + '_bn_gfxPal, ' + \
+                           str(self.__palette_colors_count) + '), ' + '\n            ' + \
+                           'bpp_mode::BPP_8, ' + compression_label(palette_compression) + ');' + '\n'
 
-            header_file.write('}' + '\n')
-            header_file.write('\n')
-            header_file.write('#endif' + '\n')
-            header_file.write('\n')
+        header_file += '}' + '\n'
+        header_file += '\n'
+        header_file += '#endif' + '\n'
+        header_file += '\n'
+
+        file_tools.write_file_if_changed(header_file_path, header_file)
 
         return total_size, header_file_path
 
@@ -1627,7 +1635,7 @@ class PaletteBitmapItem:
         header_file_path = self.__build_folder_path + '/bn_palette_bitmap_items_' + name + '.h'
 
         with open(grit_file_path, 'r') as grit_file:
-            grit_data = grit_file.read()
+            grit_data = file_tools.remove_grit_timestamp(grit_file.read())
             grit_data = grit_data.replace('unsigned int', 'uint8_t')
             grit_data = grit_data.replace('unsigned short', 'bn::color')
 
@@ -1647,26 +1655,27 @@ class PaletteBitmapItem:
         grit_data = re.sub(r'Bitmap\[([0-9]+)]', 'Bitmap[' + str(width * height) + ']', grit_data)
         grit_data = re.sub(r'Pal\[([0-9]+)]', 'Pal[' + str(self.__colors_count) + ']', grit_data)
 
-        with open(header_file_path, 'w') as header_file:
-            include_guard = 'BN_PALETTE_BITMAP_ITEMS_' + name.upper() + '_H'
-            header_file.write('#ifndef ' + include_guard + '\n')
-            header_file.write('#define ' + include_guard + '\n')
-            header_file.write('\n')
-            header_file.write('#include "bn_palette_bitmap_item.h"' + '\n')
-            header_file.write(grit_data)
-            header_file.write('\n')
-            header_file.write('namespace bn::palette_bitmap_items' + '\n')
-            header_file.write('{' + '\n')
-            header_file.write('    constexpr inline palette_bitmap_item ' + name + '(' + '\n            ' +
-                              'palette_bitmap_pixels_item(' + name + '_bn_gfxBitmap[0], size(' + str(width) + ', ' +
-                              str(height) + '), ' + compression_label(pixels_compression) + '), ' + '\n            ' +
-                              'bg_palette_item(span<const color>(' + name + '_bn_gfxPal, ' +
-                              str(self.__colors_count) + '), bpp_mode::BPP_8, ' +
-                              compression_label(palette_compression) + '));\n')
-            header_file.write('}' + '\n')
-            header_file.write('\n')
-            header_file.write('#endif' + '\n')
-            header_file.write('\n')
+        include_guard = 'BN_PALETTE_BITMAP_ITEMS_' + name.upper() + '_H'
+        header_file = '#ifndef ' + include_guard + '\n'
+        header_file += '#define ' + include_guard + '\n'
+        header_file += '\n'
+        header_file += '#include "bn_palette_bitmap_item.h"' + '\n'
+        header_file += grit_data
+        header_file += '\n'
+        header_file += 'namespace bn::palette_bitmap_items' + '\n'
+        header_file += '{' + '\n'
+        header_file += '    constexpr inline palette_bitmap_item ' + name + '(' + '\n            ' + \
+                       'palette_bitmap_pixels_item(' + name + '_bn_gfxBitmap[0], size(' + str(width) + ', ' + \
+                       str(height) + '), ' + compression_label(pixels_compression) + '), ' + '\n            ' + \
+                       'bg_palette_item(span<const color>(' + name + '_bn_gfxPal, ' + \
+                       str(self.__colors_count) + '), bpp_mode::BPP_8, ' + \
+                       compression_label(palette_compression) + '));\n'
+        header_file += '}' + '\n'
+        header_file += '\n'
+        header_file += '#endif' + '\n'
+        header_file += '\n'
+
+        file_tools.write_file_if_changed(header_file_path, header_file)
 
         return total_size, header_file_path
 
@@ -1727,7 +1736,7 @@ class PaletteBitmapPixelsItem:
         header_file_path = self.__build_folder_path + '/bn_palette_bitmap_pixels_items_' + name + '.h'
 
         with open(grit_file_path, 'r') as grit_file:
-            grit_data = grit_file.read()
+            grit_data = file_tools.remove_grit_timestamp(grit_file.read())
             grit_data = grit_data.replace('unsigned int', 'uint8_t', 1)
 
             for grit_line in grit_data.splitlines():
@@ -1745,23 +1754,24 @@ class PaletteBitmapPixelsItem:
         height = self.__bmp.height
         grit_data = re.sub(r'Bitmap\[([0-9]+)]', 'Bitmap[' + str(width * height) + ']', grit_data)
 
-        with open(header_file_path, 'w') as header_file:
-            include_guard = 'BN_PALETTE_BITMAP_PIXELS_ITEMS_' + name.upper() + '_H'
-            header_file.write('#ifndef ' + include_guard + '\n')
-            header_file.write('#define ' + include_guard + '\n')
-            header_file.write('\n')
-            header_file.write('#include "bn_palette_bitmap_pixels_item.h"' + '\n')
-            header_file.write(grit_data)
-            header_file.write('\n')
-            header_file.write('namespace bn::palette_bitmap_pixels_items' + '\n')
-            header_file.write('{' + '\n')
-            header_file.write('    constexpr inline palette_bitmap_pixels_item ' + name + '(' + '\n            ' +
-                              name + '_bn_gfxBitmap[0], size(' + str(width) + ', ' + str(height) + '), ' +
-                              compression_label(compression) + ');' + '\n')
-            header_file.write('}' + '\n')
-            header_file.write('\n')
-            header_file.write('#endif' + '\n')
-            header_file.write('\n')
+        include_guard = 'BN_PALETTE_BITMAP_PIXELS_ITEMS_' + name.upper() + '_H'
+        header_file = '#ifndef ' + include_guard + '\n'
+        header_file += '#define ' + include_guard + '\n'
+        header_file += '\n'
+        header_file += '#include "bn_palette_bitmap_pixels_item.h"' + '\n'
+        header_file += grit_data
+        header_file += '\n'
+        header_file += 'namespace bn::palette_bitmap_pixels_items' + '\n'
+        header_file += '{' + '\n'
+        header_file += '    constexpr inline palette_bitmap_pixels_item ' + name + '(' + '\n            ' + \
+                       name + '_bn_gfxBitmap[0], size(' + str(width) + ', ' + str(height) + '), ' + \
+                       compression_label(compression) + ');' + '\n'
+        header_file += '}' + '\n'
+        header_file += '\n'
+        header_file += '#endif' + '\n'
+        header_file += '\n'
+
+        file_tools.write_file_if_changed(header_file_path, header_file)
 
         return total_size, header_file_path
 
@@ -1821,7 +1831,7 @@ class DirectBitmapItem:
         header_file_path = self.__build_folder_path + '/bn_direct_bitmap_items_' + name + '.h'
 
         with open(grit_file_path, 'r') as grit_file:
-            grit_data = grit_file.read()
+            grit_data = file_tools.remove_grit_timestamp(grit_file.read())
             grit_data = grit_data.replace('unsigned int', 'bn::color', 1)
 
             for grit_line in grit_data.splitlines():
@@ -1839,23 +1849,24 @@ class DirectBitmapItem:
         height = self.__bmp.height
         grit_data = re.sub(r'Bitmap\[([0-9]+)]', 'Bitmap[' + str(width * height) + ']', grit_data)
 
-        with open(header_file_path, 'w') as header_file:
-            include_guard = 'BN_DIRECT_BITMAP_ITEMS_' + name.upper() + '_H'
-            header_file.write('#ifndef ' + include_guard + '\n')
-            header_file.write('#define ' + include_guard + '\n')
-            header_file.write('\n')
-            header_file.write('#include "bn_direct_bitmap_item.h"' + '\n')
-            header_file.write(grit_data)
-            header_file.write('\n')
-            header_file.write('namespace bn::direct_bitmap_items' + '\n')
-            header_file.write('{' + '\n')
-            header_file.write('    constexpr inline direct_bitmap_item ' + name + '(' + '\n            ' +
-                              name + '_bn_gfxBitmap[0], size(' + str(width) + ', ' + str(height) + '), ' +
-                              compression_label(compression) + ');' + '\n')
-            header_file.write('}' + '\n')
-            header_file.write('\n')
-            header_file.write('#endif' + '\n')
-            header_file.write('\n')
+        include_guard = 'BN_DIRECT_BITMAP_ITEMS_' + name.upper() + '_H'
+        header_file = '#ifndef ' + include_guard + '\n'
+        header_file += '#define ' + include_guard + '\n'
+        header_file += '\n'
+        header_file += '#include "bn_direct_bitmap_item.h"' + '\n'
+        header_file += grit_data
+        header_file += '\n'
+        header_file += 'namespace bn::direct_bitmap_items' + '\n'
+        header_file += '{' + '\n'
+        header_file += '    constexpr inline direct_bitmap_item ' + name + '(' + '\n            ' + \
+                       name + '_bn_gfxBitmap[0], size(' + str(width) + ', ' + str(height) + '), ' + \
+                       compression_label(compression) + ');' + '\n'
+        header_file += '}' + '\n'
+        header_file += '\n'
+        header_file += '#endif' + '\n'
+        header_file += '\n'
+
+        file_tools.write_file_if_changed(header_file_path, header_file)
 
         return total_size, header_file_path
 
@@ -1917,7 +1928,7 @@ class BgPaletteItem:
         header_file_path = self.__build_folder_path + '/bn_bg_palette_items_' + name + '.h'
 
         with open(grit_file_path, 'r') as grit_file:
-            grit_data = grit_file.read()
+            grit_data = file_tools.remove_grit_timestamp(grit_file.read())
             grit_data = grit_data.replace('unsigned short', 'bn::color', 1)
 
             for grit_line in grit_data.splitlines():
@@ -1938,24 +1949,25 @@ class BgPaletteItem:
 
         grit_data = re.sub(r'Pal\[([0-9]+)]', 'Pal[' + str(self.__colors_count) + ']', grit_data)
 
-        with open(header_file_path, 'w') as header_file:
-            include_guard = 'BN_BG_PALETTE_ITEMS_' + name.upper() + '_H'
-            header_file.write('#ifndef ' + include_guard + '\n')
-            header_file.write('#define ' + include_guard + '\n')
-            header_file.write('\n')
-            header_file.write('#include "bn_bg_palette_item.h"' + '\n')
-            header_file.write(grit_data)
-            header_file.write('\n')
-            header_file.write('namespace bn::bg_palette_items' + '\n')
-            header_file.write('{' + '\n')
-            header_file.write('    constexpr inline bg_palette_item ' + name + '(' +
-                              'span<const color>(' + name + '_bn_gfxPal, ' +
-                              str(self.__colors_count) + '), ' + '\n            ' +
-                              bpp_mode_label + ', ' + compression_label(compression) + ');' + '\n')
-            header_file.write('}' + '\n')
-            header_file.write('\n')
-            header_file.write('#endif' + '\n')
-            header_file.write('\n')
+        include_guard = 'BN_BG_PALETTE_ITEMS_' + name.upper() + '_H'
+        header_file = '#ifndef ' + include_guard + '\n'
+        header_file += '#define ' + include_guard + '\n'
+        header_file += '\n'
+        header_file += '#include "bn_bg_palette_item.h"' + '\n'
+        header_file += grit_data
+        header_file += '\n'
+        header_file += 'namespace bn::bg_palette_items' + '\n'
+        header_file += '{' + '\n'
+        header_file += '    constexpr inline bg_palette_item ' + name + '(' + \
+                       'span<const color>(' + name + '_bn_gfxPal, ' + \
+                       str(self.__colors_count) + '), ' + '\n            ' + \
+                       bpp_mode_label + ', ' + compression_label(compression) + ');' + '\n'
+        header_file += '}' + '\n'
+        header_file += '\n'
+        header_file += '#endif' + '\n'
+        header_file += '\n'
+
+        file_tools.write_file_if_changed(header_file_path, header_file)
 
         return total_size, header_file_path
 

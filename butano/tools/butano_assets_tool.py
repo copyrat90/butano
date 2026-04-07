@@ -1,3 +1,8 @@
+"""
+Copyright (c) 2020-2026 Gustavo Valiente gustavo.valiente@protonmail.com
+zlib License, see LICENSE file.
+"""
+
 import argparse
 import sys
 import traceback
