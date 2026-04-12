@@ -4,7 +4,7 @@
 
 #include "../include/advgm.h"
 
-#include "advgm_hardware.h"
+#include "../include/advgm_hardware.h"
 
 #include <stddef.h>
 
