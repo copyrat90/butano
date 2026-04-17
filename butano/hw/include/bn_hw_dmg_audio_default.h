@@ -27,7 +27,7 @@ namespace bn::hw::dmg_audio
 
     void stop_music();
 
-    void play_music(const void* song, dmg_music_type type, int speed, bool loop);
+    void play_music(const void* song, dmg_music_type type, int speed, bool loop, bool timer_commit);
 
     void pause_music();
 
@@ -51,6 +51,8 @@ namespace bn::hw::dmg_audio
     {
         stop_music();
     }
+
+    [[nodiscard]] bool timer_commit();
 
     void commit();
 

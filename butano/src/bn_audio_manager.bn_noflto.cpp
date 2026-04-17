@@ -11,12 +11,14 @@
 #include "bn_dmg_music_position.h"
 #include "../hw/include/bn_hw_audio.h"
 #include "../hw/include/bn_hw_dmg_audio.h"
+#include "../hw/include/bn_hw_synced_audio.h"
 
 #include "bn_audio.cpp.h"
 #include "bn_music.cpp.h"
 #include "bn_sound.cpp.h"
 #include "bn_jingle.cpp.h"
 #include "bn_dmg_music.cpp.h"
+#include "bn_synced_music.cpp.h"
 #include "bn_music_item.cpp.h"
 #include "bn_sound_item.cpp.h"
 #include "bn_sound_handle.cpp.h"
@@ -237,7 +239,7 @@ namespace
 
         void execute() const
         {
-            hw::dmg_audio::play_music(_song, _type, _speed, _loop);
+            hw::dmg_audio::play_music(_song, _type, _speed, _loop, false);
         }
 
     private:
@@ -492,6 +494,36 @@ namespace
     };
 
 
+    class play_synced_music_command
+    {
+
+    public:
+        play_synced_music_command(int mus_id, const void* dmg_mus_song, dmg_music_type dmg_mus_type, bool loop, fixed mus_volume) :
+            _mus_id(mus_id),
+            _dmg_mus_song(dmg_mus_song),
+            _dmg_mus_type(dmg_mus_type),
+            _loop(loop),
+            _mus_volume(mus_volume)
+        {
+        }
+
+        void execute() const
+        {
+            hw::audio::set_music_tempo(1);
+            hw::synced_audio::play_music(_mus_id, _dmg_mus_song, _dmg_mus_type, _loop);
+            hw::audio::set_music_volume(_mus_volume);
+            hw::audio::set_music_pitch(1);
+        }
+
+    private:
+        int _mus_id;
+        const void* _dmg_mus_song;
+        dmg_music_type _dmg_mus_type;
+        bool _loop;
+        fixed _mus_volume;
+    };
+
+
     enum command_code : uint8_t
     {
         AUDIO_SET_MIXING_RATE,
@@ -522,7 +554,11 @@ namespace
         SOUND_SET_SPEED,
         SOUND_SET_PANNING,
         SOUND_STOP_ALL,
-        SOUND_SET_MASTER_VOLUME
+        SOUND_SET_MASTER_VOLUME,
+        SYNCED_MUSIC_PLAY,
+        SYNCED_MUSIC_STOP,
+        SYNCED_MUSIC_PAUSE,
+        SYNCED_MUSIC_RESUME
     };
 
 
@@ -565,6 +601,8 @@ namespace
         bool jingle_playing = false;
         bool jingle_paused = false;
         bool dmg_music_paused = false;
+        bool synced_music_playing = false;
+        bool synced_music_paused = false;
         bool update_on_vblank = false;
         bool event_handler_enabled = false;
         bool delay_commit = true;
@@ -584,18 +622,21 @@ void init()
 
     hw::dmg_audio::init();
     hw::audio::init();
+    hw::synced_audio::init();
 }
 
 void enable()
 {
     hw::audio::enable();
     hw::dmg_audio::enable();
+    hw::synced_audio::enable();
 }
 
 void disable()
 {
     hw::audio::disable();
     hw::dmg_audio::disable();
+    hw::synced_audio::disable();
 }
 
 bool music_playing()
@@ -1259,6 +1300,107 @@ void set_sound_master_volume(fixed volume)
     }
 }
 
+bool synced_music_playing()
+{
+    return data_ref().synced_music_playing;
+}
+
+void play_synced_music(music_item mus_item, const dmg_music_item& dmg_mus_item, fixed mus_volume, bool loop)
+{
+    static_data& data = data_ref();
+    int commands = data.commands_count;
+    BN_BASIC_ASSERT(commands < max_commands, "No more audio commands available");
+
+    data.command_codes[commands] = SYNCED_MUSIC_PLAY;
+    ::new(static_cast<void*>(data.command_datas + commands)) play_synced_music_command(mus_item.id(), dmg_mus_item.data_ptr(), dmg_mus_item.type(), loop, mus_volume);
+    data.commands_count = commands + 1;
+
+    data.synced_music_playing = true;
+    data.synced_music_paused = false;
+
+    data.music_item_id = mus_item.id();
+    data.music_position = 0;
+    data.music_volume = mus_volume;
+    data.music_tempo = 1;
+    data.music_pitch = 1;
+    data.music_playing = true;
+    data.music_paused = false;
+
+    data.dmg_music_position = bn::dmg_music_position();
+    data.dmg_music_left_volume = 1;
+    data.dmg_music_right_volume = 1;
+    data.dmg_music_data = dmg_mus_item.data_ptr();
+    data.dmg_music_type = dmg_mus_item.type();
+    data.dmg_music_paused = false;
+}
+
+void stop_synced_music()
+{
+    static_data& data = data_ref();
+
+    if (data.synced_music_playing)
+    {
+        data.synced_music_playing = false;
+        data.synced_music_paused = false;
+
+        if (data.music_playing)
+        {
+            data.music_playing = false;
+            data.music_paused = false;
+        }
+
+        if (data.dmg_music_data)
+        {
+            data.dmg_music_data = nullptr;
+            data.dmg_music_paused = false;
+        }
+
+        int commands = data.commands_count;
+        BN_BASIC_ASSERT(commands < max_commands, "No more audio commands available");
+
+        data.command_codes[commands] = SYNCED_MUSIC_STOP;
+        data.commands_count = commands + 1;
+    }
+}
+
+bool synced_music_paused()
+{
+    return data_ref().synced_music_paused;
+}
+
+void pause_synced_music()
+{
+    static_data& data = data_ref();
+    BN_BASIC_ASSERT(data.synced_music_playing, "There's no synced music playing");
+    BN_BASIC_ASSERT(! data.synced_music_paused, "Synced music is already paused");
+
+    int commands = data.commands_count;
+    BN_BASIC_ASSERT(commands < max_commands, "No more audio commands available");
+
+    data.command_codes[commands] = SYNCED_MUSIC_PAUSE;
+    data.commands_count = commands + 1;
+
+    data.synced_music_paused = true;
+    data.music_paused = true;
+    data.dmg_music_paused = true;
+}
+
+void resume_synced_music()
+{
+    static_data& data = data_ref();
+    BN_BASIC_ASSERT(data.synced_music_paused, "Synced music is not paused");
+
+    int commands = data.commands_count;
+    BN_BASIC_ASSERT(commands < max_commands, "No more audio commands available");
+
+    data.command_codes[commands] = SYNCED_MUSIC_RESUME;
+    data.commands_count = commands + 1;
+
+    data.synced_music_paused = false;
+    data.music_paused = false;
+    data.dmg_music_paused = false;
+}
+
 span<const audio_mixing_rate> available_mixing_rates()
 {
     return hw::audio::available_mixing_rates();
@@ -1333,6 +1475,8 @@ void execute_commands()
     bool music_paused = data.music_paused;
     bool jingle_playing = data.jingle_playing;
     bool jingle_paused = data.jingle_paused;
+    bool synced_music_playing = data.synced_music_playing;
+    bool synced_music_paused = data.synced_music_paused;
 
     if(music_playing && ! hw::audio::music_playing())
     {
@@ -1350,6 +1494,12 @@ void execute_commands()
     {
         dmg_music_data = nullptr;
         dmg_music_paused = false;
+    }
+
+    if (synced_music_playing && ! hw::synced_audio::music_playing())
+    {
+        synced_music_playing = false;
+        synced_music_paused = false;
     }
 
     hw::audio::update_sounds_queue();
@@ -1532,6 +1682,50 @@ void execute_commands()
             reinterpret_cast<const set_sound_master_volume_command&>(data.command_datas[index].data).execute();
             break;
 
+        case SYNCED_MUSIC_PLAY:
+            reinterpret_cast<const play_synced_music_command&>(data.command_datas[index].data).execute();
+            synced_music_playing = true;
+            synced_music_paused = false;
+            music_playing = true;
+            music_paused = false;
+            dmg_music_data = old_dmg_music_data;
+            dmg_music_paused = false;
+            break;
+
+        case SYNCED_MUSIC_STOP:
+            hw::synced_audio::stop_music();
+            synced_music_playing = false;
+            synced_music_paused = false;
+            music_playing = false;
+            music_paused = false;
+            dmg_music_data = nullptr;
+            dmg_music_paused = false;
+            break;
+
+        case SYNCED_MUSIC_PAUSE:
+            if(synced_music_playing)
+            {
+                hw::synced_audio::pause_music();
+                synced_music_paused = true;
+                if(music_playing)
+                    music_paused = true;
+                if(dmg_music_data)
+                    dmg_music_paused = true;
+            }
+            break;
+
+        case SYNCED_MUSIC_RESUME:
+            if(synced_music_playing)
+            {
+                hw::synced_audio::resume_music();
+                synced_music_paused = false;
+                if(music_playing)
+                    music_paused = false;
+                if(dmg_music_data)
+                    dmg_music_paused = false;
+            }
+            break;
+
         default:
             break;
         }
@@ -1558,6 +1752,8 @@ void execute_commands()
     data.jingle_paused = jingle_paused;
     data.dmg_music_data = dmg_music_data;
     data.dmg_music_paused = dmg_music_paused;
+    data.synced_music_playing = synced_music_playing;
+    data.synced_music_paused = synced_music_paused;
 
     for(auto it = data.sound_map.begin(), end = data.sound_map.end(); it != end; )
     {
@@ -1581,7 +1777,8 @@ void vblank_commit()
     if(! data_ref().delay_commit)
     {
         hw::audio::commit();
-        hw::dmg_audio::commit();
+        if (! hw::dmg_audio::timer_commit())
+            hw::dmg_audio::commit();
     }
 }
 
@@ -1592,8 +1789,11 @@ void delayed_commit()
     if(data.delay_commit)
     {
         hw::audio::commit();
-        hw::dmg_audio::commit();
-        hw::dmg_audio::check_commit_result();
+        if (! hw::dmg_audio::timer_commit())
+        {
+            hw::dmg_audio::commit();
+            hw::dmg_audio::check_commit_result();
+        }
         data.delay_commit = false;
     }
 }

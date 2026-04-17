@@ -37,7 +37,7 @@ namespace bn::hw::dmg_audio
     {
     }
 
-    inline void play_music(const void*, dmg_music_type, int, bool)
+    inline void play_music(const void*, dmg_music_type, int, bool, bool)
     {
     }
 
@@ -69,6 +69,11 @@ namespace bn::hw::dmg_audio
 
     inline void stop()
     {
+    }
+
+    [[nodiscard]] inline bool timer_commit()
+    {
+        return false;
     }
 
     inline void commit()

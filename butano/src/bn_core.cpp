@@ -33,6 +33,7 @@
 #include "../hw/include/bn_hw_gpio.h"
 #include "../hw/include/bn_hw_sram.h"
 #include "../hw/include/bn_hw_audio.h"
+#include "../hw/include/bn_hw_synced_audio.h"
 #include "../hw/include/bn_hw_timer.h"
 #include "../hw/include/bn_hw_game_pak.h"
 #include "../hw/include/bn_hw_hblank_effects.h"
@@ -328,6 +329,7 @@ namespace
     {
         static_data& data = data_ref();
         hw::audio::on_vblank();
+        hw::synced_audio::on_vblank();
 
         if(data.waiting_for_vblank)
         {
