@@ -45,7 +45,11 @@ namespace bn::hw::audio
 
     [[nodiscard]] constexpr bool timer_free(int timer_id)
     {
+#ifdef BN_DMG_AUDIO_SYNC
+        return timer_id > 1;
+#else
         return timer_id > 0;
+#endif
     }
 
     [[nodiscard]] constexpr bool dma_channel_free(int dma_channel_id)
@@ -101,7 +105,7 @@ namespace bn::hw::audio
     {
         mmSetModulePitch(mm_word(_hw_music_pitch(pitch)));
     }
-    
+
     [[nodiscard]] bool jingle_playing();
 
     void play_jingle(int id);

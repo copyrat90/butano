@@ -149,6 +149,21 @@ namespace bn::audio_manager
     void set_sound_master_volume(fixed volume);
 
 
+    // synced music
+
+    [[nodiscard]] bool synced_music_playing();
+
+    void play_synced_music(music_item mus_item, const dmg_music_item& dmg_mus_item, fixed mus_volume, bool loop);
+
+    void stop_synced_music();
+
+    [[nodiscard]] bool synced_music_paused();
+
+    void pause_synced_music();
+
+    void resume_synced_music();
+
+
     // other
 
     [[nodiscard]] span<const audio_mixing_rate> available_mixing_rates();

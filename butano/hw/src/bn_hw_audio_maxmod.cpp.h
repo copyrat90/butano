@@ -10,6 +10,10 @@
 #include "bn_config_audio.h"
 #include "../include/bn_hw_tonc.h"
 
+#ifdef BN_DMG_AUDIO_SYNC
+#include "../include/bn_hw_synced_audio_maxmod_dmg_default.h"
+#endif
+
 extern const uint8_t bn_audio_soundbank_bin[];
 
 namespace bn::hw::audio
@@ -213,6 +217,12 @@ namespace
                 data.current_event_count = uint8_t(event_count + 1);
             }
         }
+#ifdef BN_DMG_AUDIO_SYNC
+        else if (msg == MMCB_SONGTICK)
+        {
+            hw::synced_audio::am_sync_maxmod_tick_callback_handler(msg, param);
+        }
+#endif
 
         return 0;
     }
@@ -299,7 +309,11 @@ void update_events(bool enabled)
         {
             data.last_event_count = 0;
             data.event_handler_enabled = false;
+#ifdef BN_DMG_AUDIO_SYNC
+            mmSetEventHandler(hw::synced_audio::am_sync_maxmod_tick_callback_handler);
+#else
             mmSetEventHandler(nullptr);
+#endif
         }
     }
     else

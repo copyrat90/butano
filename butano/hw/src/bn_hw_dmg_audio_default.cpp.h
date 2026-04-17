@@ -34,6 +34,7 @@ namespace
         uint16_t control_value = 0;
         bn::dmg_music_type music_type = dmg_music_type::GBT_PLAYER;
         bool music_paused = false;
+        bool timer_commit = false;
         #if BN_CFG_ASSERT_ENABLED
             bool advgm_update_failed = false;
         #endif
@@ -98,7 +99,7 @@ void stop_music()
     data.music_paused = false;
 }
 
-void play_music(const void* song, dmg_music_type type, int speed, bool loop)
+void play_music(const void* song, dmg_music_type type, int speed, bool loop, bool timer_commit)
 {
     static_data& data = data_ref();
 
@@ -107,6 +108,10 @@ void play_music(const void* song, dmg_music_type type, int speed, bool loop)
         stop_music();
         data.music_type = type;
     }
+
+    BN_BARRIER;
+    data.timer_commit = timer_commit;
+    BN_BARRIER;
 
     if(data.music_type == dmg_music_type::GBT_PLAYER)
     {
@@ -192,6 +197,11 @@ void set_music_volume(fixed left_volume, fixed right_volume)
     {
         BN_ERROR("Volume change not supported by advgm");
     }
+}
+
+bool timer_commit()
+{
+    return data_ref().timer_commit;
 }
 
 void commit()
