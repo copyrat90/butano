@@ -1,9 +1,8 @@
 #include "../include/bn_hw_synced_audio_maxmod_dmg_default.h"
 
-#include <atomic>
-
 #include "maxmod.h"
 
+#include "bn_common.h"
 #include "bn_audio.h"
 
 #include "../include/bn_hw_dmg_audio.h"
@@ -25,8 +24,6 @@ extern "C"
     extern mm_word mm_mixlen;
     extern mm_word mm_bpmdv;
 }
-
-#define AM_MEMORY_BARRIER std::atomic_signal_fence(std::memory_order::seq_cst);
 
 #define AM_DISABLE_TIMER1_IRQ \
     do \
@@ -62,7 +59,7 @@ namespace
         bool vblank_handled;
         bool timer1_handled;
 
-        std::atomic_bool startup_delay_published;
+        bool startup_delay_published;
 
         uint16_t snddmgcnt_on_pause;
 
@@ -167,7 +164,8 @@ namespace
         data.timer_accumulator = timer_remainder;
 
         // Publish the startup delay values.
-        data.startup_delay_published.store(true, std::memory_order::release);
+        BN_BARRIER;
+        data.startup_delay_published = true;
     }
 
     void am_sync_timer1_interrupt_handler()
@@ -211,7 +209,7 @@ namespace
             // Restart the timer to use `regular_tm_data` instead of `startup_tm_data`.
             ADVGM_REG_TM1CNT = ADVGM_TMxCNT_PRESCALER_F_DIV_64 | ADVGM_TMxCNT_IRQ_ENABLE | ADVGM_TMxCNT_START;
 
-            AM_MEMORY_BARRIER;
+            BN_BARRIER;
         }
 
         ++data.dmg_update_counter;
@@ -219,16 +217,16 @@ namespace
         // The above if statement was seperated, to avoid previously described race condition.
         if (!data.timer1_handled)
         {
-            AM_MEMORY_BARRIER;
+            BN_BARRIER;
             data.timer1_handled = true;
-            AM_MEMORY_BARRIER;
+            BN_BARRIER;
 
             // Re-enable the timer1 interrupt.
             AM_ENABLE_TIMER1_IRQ;
         }
 
         // Update advgm playback last, for the restarted timer accuracy.
-        AM_MEMORY_BARRIER;
+        BN_BARRIER;
 
         if (hw::dmg_audio::timer_commit())
             hw::dmg_audio::commit();
@@ -270,7 +268,7 @@ void play_music(int mus_id, const void* dmg_mus_song, dmg_music_type dmg_mus_typ
     // Note that the timer1 is not started yet, that's done in the delayed vblank callback.
     // Until then, advgm playback is never updated.
     hw::dmg_audio::play_music(dmg_mus_song, dmg_mus_type, 1, loop, true);
-    AM_MEMORY_BARRIER;
+    BN_BARRIER;
     hw::audio::play_music(mus_id, loop);
 
     am_sync_start();
@@ -289,9 +287,9 @@ void stop_music()
 
     // Reset the playing flag ASAP so that the
     // vblank interrupt handler can't do weird things.
-    AM_MEMORY_BARRIER;
+    BN_BARRIER;
     data.playing = false;
-    AM_MEMORY_BARRIER;
+    BN_BARRIER;
 
     hw::audio::stop_music();
     hw::dmg_audio::stop_music();
@@ -305,7 +303,8 @@ void stop_music()
     data.maxmod_update_counter = 0;
 
     data.startup_vblank_delay_needed = 0;
-    data.startup_delay_published.store(false, std::memory_order::release);
+    BN_BARRIER;
+    data.startup_delay_published = false;
 
     // Re-enable the timer1 interrupt again.
     AM_ENABLE_TIMER1_IRQ;
@@ -322,9 +321,10 @@ void pause_music()
     // In that case, you should invalidate the startup delay first.
     //
     // It must be done before stopping timer, because VBlank interrupt might start a timer in any moment.
-    data.startup_delay_published.store(false, std::memory_order::release);
+    BN_BARRIER;
+    data.startup_delay_published = false;
 
-    AM_MEMORY_BARRIER;
+    BN_BARRIER;
 
     // Disable the timer1 interrupt beforehand.
     //
@@ -333,14 +333,14 @@ void pause_music()
     // Pretty nasty race condition, I learned it the hard way.
     AM_DISABLE_TIMER1_IRQ;
 
-    AM_MEMORY_BARRIER;
+    BN_BARRIER;
 
     // Stop the timer1
     ADVGM_REG_TM1CNT = ADVGM_TMxCNT_STOP;
 
-    AM_MEMORY_BARRIER;
+    BN_BARRIER;
     hw::audio::pause_music();
-    AM_MEMORY_BARRIER;
+    BN_BARRIER;
 
     // Store this before muting all channels.
     data.snddmgcnt_on_pause = ADVGM_REG_SNDDMGCNT;
@@ -364,12 +364,12 @@ void pause_music()
         ++data.dmg_update_counter;
     }
 
-    AM_MEMORY_BARRIER;
+    BN_BARRIER;
     hw::dmg_audio::pause_music();
 
     data.paused = true;
 
-    AM_MEMORY_BARRIER;
+    BN_BARRIER;
 
     // Re-enable the timer1 interrupt again.
     AM_ENABLE_TIMER1_IRQ;
@@ -388,18 +388,19 @@ void resume_music()
     data.timer1_handled = false;
 
     data.startup_vblank_delay_needed = 0;
-    data.startup_delay_published.store(false, std::memory_order::release);
+    BN_BARRIER;
+    data.startup_delay_published = false;
 
-    AM_MEMORY_BARRIER;
+    BN_BARRIER;
     hw::dmg_audio::resume_music();
-    AM_MEMORY_BARRIER;
+    BN_BARRIER;
 
     // Unmute channels.
     ADVGM_REG_SNDDMGCNT = data.snddmgcnt_on_pause;
 
-    AM_MEMORY_BARRIER;
+    BN_BARRIER;
     hw::audio::resume_music();
-    AM_MEMORY_BARRIER;
+    BN_BARRIER;
 
     am_sync_start();
 }
@@ -421,7 +422,8 @@ void on_vblank()
     // Startup delay values might not be set to valid values,
     // so we need to check if they are valid to avoid race condition.
     const bool startup_delay_published =
-        data.startup_delay_published.load(std::memory_order::acquire);
+        data.startup_delay_published;
+    BN_BARRIER;
     if (!startup_delay_published ||
         data.startup_vblank_delay_counter + 1 < data.startup_vblank_delay_needed)
     {
@@ -430,7 +432,8 @@ void on_vblank()
     }
 
     data.startup_vblank_delay_needed = 0;
-    data.startup_delay_published.store(false, std::memory_order::release);
+    BN_BARRIER;
+    data.startup_delay_published = false;
 
     // Enough vblank waited, we'll now start the timer
     // (i.e. start the advgm update)
