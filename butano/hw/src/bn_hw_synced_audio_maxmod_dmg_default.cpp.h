@@ -2,6 +2,8 @@
 
 #include <atomic>
 
+#include "bn_audio.h"
+
 #include "../include/bn_hw_dmg_audio.h"
 #include "../include/bn_hw_audio.h"
 #include "../include/bn_hw_irq.h"
@@ -116,7 +118,7 @@ namespace
         const mm_word mixlen = mm_mixlen;
 
         // Don't forget the 2 more vblank delays!
-        samples_to_delay_on_startup += 2 * mixlen;
+        samples_to_delay_on_startup += (1 + bn::audio::update_on_vblank()) * mixlen;
         if (samples_to_delay_on_startup < 0)
             samples_to_delay_on_startup = 0;
 
