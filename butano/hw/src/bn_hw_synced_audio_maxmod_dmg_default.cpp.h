@@ -2,6 +2,8 @@
 
 #include <atomic>
 
+#include "maxmod.h"
+
 #include "bn_audio.h"
 
 #include "../include/bn_hw_dmg_audio.h"
