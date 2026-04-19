@@ -12,6 +12,16 @@ bool playing()
     return audio_manager::synced_music_playing();
 }
 
+optional<music_item> playing_music_item()
+{
+    return audio_manager::playing_synced_music_item();
+}
+
+optional<dmg_music_item> playing_dmg_music_item()
+{
+    return audio_manager::playing_synced_dmg_music_item();
+}
+
 void play(music_item mus_item, const dmg_music_item& dmg_mus_item)
 {
     audio_manager::play_synced_music(mus_item, dmg_mus_item, 1, true);
