@@ -153,6 +153,10 @@ namespace bn::audio_manager
 
     [[nodiscard]] bool synced_music_playing();
 
+    [[nodiscard]] optional<music_item> playing_synced_music_item();
+
+    [[nodiscard]] optional<dmg_music_item> playing_synced_dmg_music_item();
+
     void play_synced_music(music_item mus_item, const dmg_music_item& dmg_mus_item, fixed mus_volume, bool loop);
 
     void stop_synced_music();

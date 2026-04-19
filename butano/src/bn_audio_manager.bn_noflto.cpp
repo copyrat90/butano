@@ -1311,6 +1311,32 @@ bool synced_music_playing()
     return data_ref().synced_music_playing;
 }
 
+optional<music_item> playing_synced_music_item()
+{
+    static_data& data = data_ref();
+    optional<music_item> result;
+
+    if(data.synced_music_playing)
+    {
+        result = music_item(data.music_item_id);
+    }
+
+    return result;
+}
+
+optional<dmg_music_item> playing_synced_dmg_music_item()
+{
+    static_data& data = data_ref();
+    optional<dmg_music_item> result;
+
+    if(data.synced_music_playing)
+    {
+        result = dmg_music_item(*data.dmg_music_data, data.dmg_music_type);
+    }
+
+    return result;
+}
+
 void play_synced_music(music_item mus_item, const dmg_music_item& dmg_mus_item, fixed mus_volume, bool loop)
 {
     static_data& data = data_ref();
