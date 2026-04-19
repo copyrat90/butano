@@ -92,6 +92,11 @@ namespace bn::synced_music
     [[nodiscard]] int music_position();
 
     /**
+     * @brief Returns the sequence position of the active DMG music of the synchronized music.
+     */
+    [[nodiscard]] const bn::dmg_music_position& dmg_music_position();
+
+    /**
      * @brief Returns the volume of the active Direct Sound music of the synchronized music.
      */
     [[nodiscard]] fixed music_volume();
@@ -101,6 +106,67 @@ namespace bn::synced_music
      * @param volume Volume level, in the range [0..1].
      */
     void set_music_volume(fixed volume);
+
+    /**
+     * @brief Returns the volume of the active DMG music of the synchronized music for the left speaker.
+     */
+    [[nodiscard]] fixed dmg_music_left_volume();
+
+    /**
+     * @brief Returns the volume of the active DMG music of the synchronized music for the right speaker.
+     */
+    [[nodiscard]] fixed dmg_music_right_volume();
+
+    /**
+     * @brief Sets the volume of the active DMG music of the synchronized music for the left speaker.
+     *
+     * Volume change is not supported by the VGM player.
+     *
+     * @param left_volume Left speaker volume level, in the range [0..1].
+     */
+    void dmg_music_set_left_volume(fixed left_volume);
+
+    /**
+     * @brief Sets the volume of the active DMG music of the synchronized music for the right speaker.
+     *
+     * Volume change is not supported by the VGM player.
+     *
+     * @param right_volume Right speaker volume level, in the range [0..1].
+     */
+    void dmg_music_set_right_volume(fixed right_volume);
+
+    /**
+     * @brief Sets the volume of the active DMG music of the synchronized music for both speakers.
+     *
+     * Volume change is not supported by the VGM player.
+     *
+     * @param volume Volume level, in the range [0..1].
+     */
+    void dmg_music_set_volume(fixed volume);
+
+    /**
+     * @brief Sets the volume of the active DMG music of the synchronized music for both speakers.
+     *
+     * Volume change is not supported by the VGM player.
+     *
+     * @param left_volume Left speaker volume level, in the range [0..1].
+     * @param right_volume Right speaker volume level, in the range [0..1].
+     */
+    void dmg_music_set_volume(fixed left_volume, fixed right_volume);
+
+    /**
+     * @brief Returns the tempo of the active synchronized music.
+     */
+    [[nodiscard]] fixed tempo();
+
+    /**
+     * @brief Sets the tempo of the active synchronized music.
+     * 
+     * Synchronized music must be paused before changing the tempo.
+     *
+     * @param tempo Tempo level, in the range [0.5..2].
+     */
+    void set_tempo(fixed tempo);
 
     /**
      * @brief Returns the pitch of the active Direct Sound music of the synchronized music.
