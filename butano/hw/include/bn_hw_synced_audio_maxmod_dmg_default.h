@@ -30,7 +30,7 @@ namespace bn::hw::synced_audio
 
     void on_vblank();
 
-    mm_word am_sync_maxmod_tick_callback_handler(mm_word msg, mm_word);
+    mm_word am_sync_maxmod_tick_callback_handler(mm_word msg, mm_word param);
 }
 
 #endif

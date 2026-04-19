@@ -449,9 +449,9 @@ void on_vblank()
     ADVGM_REG_TM1CNT = ADVGM_TMxCNT_PRESCALER_F_DIV_64 | ADVGM_TMxCNT_IRQ_ENABLE | ADVGM_TMxCNT_START;
 }
 
-mm_word am_sync_maxmod_tick_callback_handler(mm_word msg, mm_word)
+mm_word am_sync_maxmod_tick_callback_handler(mm_word msg, mm_word param)
 {
-    if (msg != MMCB_SONGTICK)
+    if (msg != MMCB_SONGTICK || (param & 0xFF) != MM_MAIN)
         return 0;
 
     static_data& data = data_ref();
