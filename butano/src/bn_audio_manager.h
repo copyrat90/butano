@@ -167,6 +167,16 @@ namespace bn::audio_manager
 
     void resume_synced_music();
 
+    [[nodiscard]] int synced_music_music_position();
+
+    [[nodiscard]] fixed synced_music_music_volume();
+
+    void set_synced_music_music_volume(fixed volume);
+
+    [[nodiscard]] fixed synced_music_music_pitch();
+
+    void set_synced_music_music_pitch(fixed pitch);
+
 
     // other
 

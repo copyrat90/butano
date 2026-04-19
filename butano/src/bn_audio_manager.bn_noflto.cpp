@@ -1417,6 +1417,66 @@ void resume_synced_music()
     data.synced_music_paused = false;
 }
 
+int synced_music_music_position()
+{
+    static_data& data = data_ref();
+    BN_BASIC_ASSERT(data.synced_music_playing, "There's no synced music playing");
+
+    return data.music_position;
+}
+
+fixed synced_music_music_volume()
+{
+    static_data& data = data_ref();
+    BN_BASIC_ASSERT(data.synced_music_playing, "There's no synced music playing");
+
+    return data.music_volume;
+}
+
+void set_synced_music_music_volume(fixed volume)
+{
+    static_data& data = data_ref();
+    BN_BASIC_ASSERT(data.synced_music_playing, "There's no synced music playing");
+
+    if(volume != data.music_volume)
+    {
+        data.music_volume = volume;
+
+        int commands = data.commands_count;
+        BN_BASIC_ASSERT(commands < max_commands, "No more audio commands available");
+
+        data.command_codes[commands] = MUSIC_SET_VOLUME;
+        ::new(static_cast<void*>(data.command_datas + commands)) set_music_volume_command(volume);
+        data.commands_count = commands + 1;
+    }
+}
+
+fixed synced_music_music_pitch()
+{
+    static_data& data = data_ref();
+    BN_BASIC_ASSERT(data.synced_music_playing, "There's no synced music playing");
+
+    return data.music_pitch;
+}
+
+void set_synced_music_music_pitch(fixed pitch)
+{
+    static_data& data = data_ref();
+    BN_BASIC_ASSERT(data.synced_music_playing, "There's no synced music playing");
+
+    if(pitch != data.music_pitch)
+    {
+        data.music_pitch = pitch;
+
+        int commands = data.commands_count;
+        BN_BASIC_ASSERT(commands < max_commands, "No more audio commands available");
+
+        data.command_codes[commands] = MUSIC_SET_PITCH;
+        ::new(static_cast<void*>(data.command_datas + commands)) set_music_pitch_command(pitch);
+        data.commands_count = commands + 1;
+    }
+}
+
 span<const audio_mixing_rate> available_mixing_rates()
 {
     return hw::audio::available_mixing_rates();
@@ -1564,7 +1624,7 @@ void execute_commands()
             break;
 
         case MUSIC_SET_VOLUME:
-            if(music_playing)
+            if(music_playing || synced_music_playing)
             {
                 reinterpret_cast<const set_music_volume_command&>(data.command_datas[index].data).execute();
             }
@@ -1578,7 +1638,7 @@ void execute_commands()
             break;
 
         case MUSIC_SET_PITCH:
-            if(music_playing)
+            if(music_playing || synced_music_playing)
             {
                 reinterpret_cast<const set_music_pitch_command&>(data.command_datas[index].data).execute();
             }
@@ -1732,12 +1792,15 @@ void execute_commands()
 
     data.commands_count = 0;
 
-    if(music_playing)
+    if(music_playing || synced_music_playing)
     {
         data.music_position = hw::audio::music_position();
     }
 
-    if(dmg_music_playing)
+    // Can't fetch this for synced_music, because it's a race condition with the Timer1 ISR.
+    if(dmg_music_playing
+        // || synced_music_playing
+       )
     {
         int pattern;
         int row;
