@@ -22,13 +22,10 @@ int main()
     static constexpr bn::string_view info_text_lines[] = {
         "A: pause/resume music",
         "B: stop music",
-        "SELECT: change tempo",
     };
 
     common::info info("Synced music", info_text_lines, text_generator);
     info.set_show_always(true);
-
-    bool tempo_2x = false;
 
     bn::dmg_music::set_master_volume(bn::dmg_music_master_volume::FULL);
 
@@ -36,20 +33,6 @@ int main()
 
     while(true)
     {
-        if(bn::keypad::select_pressed() && bn::synced_music::playing())
-        {
-            bool paused = bn::synced_music::paused();
-
-            if(! paused)
-                bn::synced_music::pause();
-
-            tempo_2x = ! tempo_2x;
-            bn::music::set_tempo(tempo_2x ? 2 : 1);
-
-            if(! paused)
-                bn::synced_music::resume();
-        }
-
         if(bn::keypad::a_pressed())
         {
             if(! bn::synced_music::playing())
@@ -71,8 +54,6 @@ int main()
             if (bn::synced_music::playing())
             {
                 bn::synced_music::stop();
-
-                tempo_2x = false;
             }
         }
 
