@@ -61,4 +61,29 @@ void resume()
     audio_manager::resume_synced_music();
 }
 
+int music_position()
+{
+    return audio_manager::synced_music_music_position();
+}
+
+fixed music_volume()
+{
+    return audio_manager::synced_music_music_volume();
+}
+
+void set_music_volume(fixed volume)
+{
+    audio_manager::set_synced_music_music_volume(volume);
+}
+
+fixed music_pitch()
+{
+    return audio_manager::synced_music_music_pitch();
+}
+
+void set_music_pitch(fixed pitch)
+{
+    audio_manager::set_synced_music_music_pitch(pitch);
+}
+
 }

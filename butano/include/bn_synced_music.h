@@ -85,6 +85,33 @@ namespace bn::synced_music
      * @brief Resumes playback of the paused synchronized music.
      */
     void resume();
+
+    /**
+     * @brief Returns the sequence position of the active Direct Sound music of the synchronized music.
+     */
+    [[nodiscard]] int music_position();
+
+    /**
+     * @brief Returns the volume of the active Direct Sound music of the synchronized music.
+     */
+    [[nodiscard]] fixed music_volume();
+
+    /**
+     * @brief Sets the volume of the active Direct Sound music of the synchronized music.
+     * @param volume Volume level, in the range [0..1].
+     */
+    void set_music_volume(fixed volume);
+
+    /**
+     * @brief Returns the pitch of the active Direct Sound music of the synchronized music.
+     */
+    [[nodiscard]] fixed music_pitch();
+
+    /**
+     * @brief Sets the pitch of the active Direct Sound music of the synchronized music.
+     * @param pitch Pitch level, in the range [0.5..2].
+     */
+    void set_music_pitch(fixed pitch);
 }
 
 #endif
