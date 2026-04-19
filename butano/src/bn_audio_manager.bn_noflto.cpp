@@ -600,6 +600,7 @@ namespace
         bool music_paused = false;
         bool jingle_playing = false;
         bool jingle_paused = false;
+        bool dmg_music_playing = false;
         bool dmg_music_paused = false;
         bool synced_music_playing = false;
         bool synced_music_paused = false;
@@ -660,6 +661,8 @@ optional<music_item> playing_music_item()
 void play_music(music_item item, fixed volume, bool loop)
 {
     static_data& data = data_ref();
+    BN_BASIC_ASSERT(! data.synced_music_playing, "Synced music is playing");
+
     int commands = data.commands_count;
     BN_BASIC_ASSERT(commands < max_commands, "No more audio commands available");
 
@@ -944,7 +947,7 @@ void set_jingle_volume(fixed volume)
 
 bool dmg_music_playing()
 {
-    return data_ref().dmg_music_data;
+    return data_ref().dmg_music_playing;
 }
 
 optional<dmg_music_item> playing_dmg_music_item()
@@ -952,9 +955,9 @@ optional<dmg_music_item> playing_dmg_music_item()
     static_data& data = data_ref();
     optional<dmg_music_item> result;
 
-    if(const uint8_t* dmg_music_data = data.dmg_music_data)
+    if(data.dmg_music_playing)
     {
-        result = dmg_music_item(*dmg_music_data, data.dmg_music_type);
+        result = dmg_music_item(*data.dmg_music_data, data.dmg_music_type);
     }
 
     return result;
@@ -963,6 +966,8 @@ optional<dmg_music_item> playing_dmg_music_item()
 void play_dmg_music(const dmg_music_item& item, int speed, bool loop)
 {
     static_data& data = data_ref();
+    BN_BASIC_ASSERT(! data.synced_music_playing, "Synced music is playing");
+
     int commands = data.commands_count;
     BN_BASIC_ASSERT(commands < max_commands, "No more audio commands available");
 
@@ -976,6 +981,7 @@ void play_dmg_music(const dmg_music_item& item, int speed, bool loop)
     data.dmg_music_right_volume = 1;
     data.dmg_music_data = item.data_ptr();
     data.dmg_music_type = item.type();
+    data.dmg_music_playing = true;
     data.dmg_music_paused = false;
 }
 
@@ -983,9 +989,9 @@ void stop_dmg_music()
 {
     static_data& data = data_ref();
 
-    if(data.dmg_music_data)
+    if(data.dmg_music_playing)
     {
-        data.dmg_music_data = nullptr;
+        data.dmg_music_playing = false;
         data.dmg_music_paused = false;
 
         int commands = data.commands_count;
@@ -1004,7 +1010,7 @@ bool dmg_music_paused()
 void pause_dmg_music()
 {
     static_data& data = data_ref();
-    BN_BASIC_ASSERT(data.dmg_music_data, "There's no DMG music playing");
+    BN_BASIC_ASSERT(data.dmg_music_playing, "There's no DMG music playing");
     BN_BASIC_ASSERT(! data.dmg_music_paused, "DMG music is already paused");
 
     int commands = data.commands_count;
@@ -1033,7 +1039,7 @@ void resume_dmg_music()
 const bn::dmg_music_position& dmg_music_position()
 {
     static_data& data = data_ref();
-    BN_BASIC_ASSERT(data.dmg_music_data, "There's no DMG music playing");
+    BN_BASIC_ASSERT(data.dmg_music_playing, "There's no DMG music playing");
 
     return data.dmg_music_position;
 }
@@ -1041,7 +1047,7 @@ const bn::dmg_music_position& dmg_music_position()
 void set_dmg_music_position(const bn::dmg_music_position& position)
 {
     static_data& data = data_ref();
-    BN_BASIC_ASSERT(data.dmg_music_data, "There's no DMG music playing");
+    BN_BASIC_ASSERT(data.dmg_music_playing, "There's no DMG music playing");
 
     if(position != data.dmg_music_position)
     {
@@ -1060,7 +1066,7 @@ void set_dmg_music_position(const bn::dmg_music_position& position)
 fixed dmg_music_left_volume()
 {
     static_data& data = data_ref();
-    BN_BASIC_ASSERT(data.dmg_music_data, "There's no DMG music playing");
+    BN_BASIC_ASSERT(data.dmg_music_playing, "There's no DMG music playing");
 
     return data.dmg_music_left_volume;
 }
@@ -1068,7 +1074,7 @@ fixed dmg_music_left_volume()
 fixed dmg_music_right_volume()
 {
     static_data& data = data_ref();
-    BN_BASIC_ASSERT(data.dmg_music_data, "There's no DMG music playing");
+    BN_BASIC_ASSERT(data.dmg_music_playing, "There's no DMG music playing");
 
     return data.dmg_music_right_volume;
 }
@@ -1086,7 +1092,7 @@ void set_dmg_music_right_volume(fixed right_volume)
 void set_dmg_music_volume(fixed left_volume, fixed right_volume)
 {
     static_data& data = data_ref();
-    BN_BASIC_ASSERT(data.dmg_music_data, "There's no DMG music playing");
+    BN_BASIC_ASSERT(data.dmg_music_playing, "There's no DMG music playing");
 
     if(left_volume != data.dmg_music_left_volume || right_volume != data.dmg_music_right_volume)
     {
@@ -1308,6 +1314,9 @@ bool synced_music_playing()
 void play_synced_music(music_item mus_item, const dmg_music_item& dmg_mus_item, fixed mus_volume, bool loop)
 {
     static_data& data = data_ref();
+    BN_BASIC_ASSERT(! data.music_playing, "Music is playing");
+    BN_BASIC_ASSERT(! data.dmg_music_playing, "DMG music is playing");
+
     int commands = data.commands_count;
     BN_BASIC_ASSERT(commands < max_commands, "No more audio commands available");
 
@@ -1315,23 +1324,20 @@ void play_synced_music(music_item mus_item, const dmg_music_item& dmg_mus_item, 
     ::new(static_cast<void*>(data.command_datas + commands)) play_synced_music_command(mus_item.id(), dmg_mus_item.data_ptr(), dmg_mus_item.type(), loop, mus_volume);
     data.commands_count = commands + 1;
 
-    data.synced_music_playing = true;
-    data.synced_music_paused = false;
-
     data.music_item_id = mus_item.id();
     data.music_position = 0;
     data.music_volume = mus_volume;
     data.music_tempo = 1;
     data.music_pitch = 1;
-    data.music_playing = true;
-    data.music_paused = false;
 
     data.dmg_music_position = bn::dmg_music_position();
     data.dmg_music_left_volume = 1;
     data.dmg_music_right_volume = 1;
     data.dmg_music_data = dmg_mus_item.data_ptr();
     data.dmg_music_type = dmg_mus_item.type();
-    data.dmg_music_paused = false;
+
+    data.synced_music_playing = true;
+    data.synced_music_paused = false;
 }
 
 void stop_synced_music()
@@ -1342,18 +1348,6 @@ void stop_synced_music()
     {
         data.synced_music_playing = false;
         data.synced_music_paused = false;
-
-        if (data.music_playing)
-        {
-            data.music_playing = false;
-            data.music_paused = false;
-        }
-
-        if (data.dmg_music_data)
-        {
-            data.dmg_music_data = nullptr;
-            data.dmg_music_paused = false;
-        }
 
         int commands = data.commands_count;
         BN_BASIC_ASSERT(commands < max_commands, "No more audio commands available");
@@ -1381,8 +1375,6 @@ void pause_synced_music()
     data.commands_count = commands + 1;
 
     data.synced_music_paused = true;
-    data.music_paused = true;
-    data.dmg_music_paused = true;
 }
 
 void resume_synced_music()
@@ -1397,8 +1389,6 @@ void resume_synced_music()
     data.commands_count = commands + 1;
 
     data.synced_music_paused = false;
-    data.music_paused = false;
-    data.dmg_music_paused = false;
 }
 
 span<const audio_mixing_rate> available_mixing_rates()
@@ -1468,8 +1458,7 @@ void update()
 void execute_commands()
 {
     static_data& data = data_ref();
-    const uint8_t* old_dmg_music_data = data.dmg_music_data;
-    const uint8_t* dmg_music_data = old_dmg_music_data;
+    bool dmg_music_playing = data.dmg_music_playing;
     bool dmg_music_paused = data.dmg_music_paused;
     bool music_playing = data.music_playing;
     bool music_paused = data.music_paused;
@@ -1490,13 +1479,13 @@ void execute_commands()
         jingle_paused = false;
     }
 
-    if(dmg_music_data && ! hw::dmg_audio::music_playing())
+    if(dmg_music_playing && ! hw::dmg_audio::music_playing())
     {
-        dmg_music_data = nullptr;
+        dmg_music_playing = false;
         dmg_music_paused = false;
     }
 
-    if (synced_music_playing && ! hw::synced_audio::music_playing())
+    if(synced_music_playing && ! hw::synced_audio::music_playing())
     {
         synced_music_playing = false;
         synced_music_paused = false;
@@ -1606,18 +1595,18 @@ void execute_commands()
 
         case DMG_MUSIC_PLAY:
             reinterpret_cast<const play_dmg_music_command&>(data.command_datas[index].data).execute();
-            dmg_music_data = old_dmg_music_data;
+            dmg_music_playing = true;
             dmg_music_paused = false;
             break;
 
         case DMG_MUSIC_STOP:
             hw::dmg_audio::stop_music();
-            dmg_music_data = nullptr;
+            dmg_music_playing = false;
             dmg_music_paused = false;
             break;
 
         case DMG_MUSIC_PAUSE:
-            if(dmg_music_data)
+            if(dmg_music_playing)
             {
                 hw::dmg_audio::pause_music();
                 dmg_music_paused = true;
@@ -1625,7 +1614,7 @@ void execute_commands()
             break;
 
         case DMG_MUSIC_RESUME:
-            if(dmg_music_data)
+            if(dmg_music_playing)
             {
                 hw::dmg_audio::resume_music();
                 dmg_music_paused = false;
@@ -1633,14 +1622,14 @@ void execute_commands()
             break;
 
         case DMG_MUSIC_SET_POSITION:
-            if(dmg_music_data)
+            if(dmg_music_playing)
             {
                 reinterpret_cast<const set_dmg_music_position_command&>(data.command_datas[index].data).execute();
             }
             break;
 
         case DMG_MUSIC_SET_VOLUME:
-            if(dmg_music_data)
+            if(dmg_music_playing)
             {
                 reinterpret_cast<const set_dmg_music_volume_command&>(data.command_datas[index].data).execute();
             }
@@ -1686,20 +1675,12 @@ void execute_commands()
             reinterpret_cast<const play_synced_music_command&>(data.command_datas[index].data).execute();
             synced_music_playing = true;
             synced_music_paused = false;
-            music_playing = true;
-            music_paused = false;
-            dmg_music_data = old_dmg_music_data;
-            dmg_music_paused = false;
             break;
 
         case SYNCED_MUSIC_STOP:
             hw::synced_audio::stop_music();
             synced_music_playing = false;
             synced_music_paused = false;
-            music_playing = false;
-            music_paused = false;
-            dmg_music_data = nullptr;
-            dmg_music_paused = false;
             break;
 
         case SYNCED_MUSIC_PAUSE:
@@ -1707,10 +1688,6 @@ void execute_commands()
             {
                 hw::synced_audio::pause_music();
                 synced_music_paused = true;
-                if(music_playing)
-                    music_paused = true;
-                if(dmg_music_data)
-                    dmg_music_paused = true;
             }
             break;
 
@@ -1719,10 +1696,6 @@ void execute_commands()
             {
                 hw::synced_audio::resume_music();
                 synced_music_paused = false;
-                if(music_playing)
-                    music_paused = false;
-                if(dmg_music_data)
-                    dmg_music_paused = false;
             }
             break;
 
@@ -1738,7 +1711,7 @@ void execute_commands()
         data.music_position = hw::audio::music_position();
     }
 
-    if(dmg_music_data)
+    if(dmg_music_playing)
     {
         int pattern;
         int row;
@@ -1750,7 +1723,7 @@ void execute_commands()
     data.music_paused = music_paused;
     data.jingle_playing = jingle_playing;
     data.jingle_paused = jingle_paused;
-    data.dmg_music_data = dmg_music_data;
+    data.dmg_music_playing = dmg_music_playing;
     data.dmg_music_paused = dmg_music_paused;
     data.synced_music_playing = synced_music_playing;
     data.synced_music_paused = synced_music_paused;
@@ -1777,7 +1750,7 @@ void vblank_commit()
     if(! data_ref().delay_commit)
     {
         hw::audio::commit();
-        if (! hw::dmg_audio::timer_commit())
+        if(! hw::dmg_audio::timer_commit())
             hw::dmg_audio::commit();
     }
 }
@@ -1789,7 +1762,7 @@ void delayed_commit()
     if(data.delay_commit)
     {
         hw::audio::commit();
-        if (! hw::dmg_audio::timer_commit())
+        if(! hw::dmg_audio::timer_commit())
         {
             hw::dmg_audio::commit();
             hw::dmg_audio::check_commit_result();
