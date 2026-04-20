@@ -12,7 +12,7 @@
  * @tableofcontents
  *
  *
- * @section changelog_21_5_0 21.5.0 (next release)
+ * @section changelog_21_5_0 21.5.0
  *
  * * Multiplications, divisions and memory operations like `memcpy` and `memset` optimized thanks to
  *   <a href="https://github.com/felixjones/stdgba">stdgba</a>.
