@@ -10,6 +10,7 @@
 
 #include "bn_config_doxygen.h"
 #include "bn_fixed.h"
+#include "bn_optional.h"
 
 namespace bn
 {
