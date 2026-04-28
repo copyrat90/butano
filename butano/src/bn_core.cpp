@@ -140,6 +140,7 @@ namespace
         bool dma_enabled = hw::audio::dma_channel_free(3);
         bool slow_game_pak = false;
         volatile bool waiting_for_vblank = false;
+        volatile bool vblank_intr_active = false;
     };
 
     alignas(static_data) BN_DATA_EWRAM_BSS char data_buffer[sizeof(static_data)];
@@ -176,7 +177,7 @@ namespace
 
     void stop(bool disable_vblank_irq)
     {
-        hw::core::wait_for_vblank();
+        hw::core::wait_for_vblank(data_ref().vblank_intr_active);
 
         audio_manager::stop();
         hdma_manager::force_stop();
@@ -236,10 +237,7 @@ namespace
         BN_BARRIER;
         result.cpu_usage_ticks = data.cpu_usage_timer.elapsed_ticks();
 
-        BN_BARRIER;
-        data.waiting_for_vblank = true;
-
-        hw::core::wait_for_vblank();
+        hw::core::wait_for_vblank(data.waiting_for_vblank);
 
         BN_BARRIER;
         data.cpu_usage_timer.restart();
@@ -352,6 +350,7 @@ namespace
         }
 
         link_manager::commit();
+        data.vblank_intr_active = false;
     }
 }
 
@@ -670,10 +669,11 @@ core_lock::~core_lock()
     keypad_manager::update();
 
     // Wait for vblank:
-    hw::core::wait_for_vblank();
+    core::static_data& data = core::data_ref();
+    hw::core::wait_for_vblank(data.vblank_intr_active);
 
     // Restart CPU usage timer:
-    core::data_ref().cpu_usage_timer.restart();
+    data.cpu_usage_timer.restart();
 
     // Wake up display (maybe display_manager::sleep() has not been called):
     display_manager::wake_up();
@@ -724,7 +724,9 @@ void set_dma_enabled(bool dma_enabled)
                     const char* condition, const char* file_name, const char* function, int line,
                     const bn::string_view& message)
             {
-                if(bn::assert::callback_type assert_callback = bn::core::data_ref().assert_callback)
+                bn::core::static_data& data = bn::core::data_ref();
+
+                if(bn::assert::callback_type assert_callback = data.assert_callback)
                 {
                     assert_callback();
                 }
@@ -742,7 +744,7 @@ void set_dma_enabled(bool dma_enabled)
 
                 while(true)
                 {
-                    bn::hw::core::wait_for_vblank();
+                    bn::hw::core::wait_for_vblank(data.vblank_intr_active);
                 }
             }
         }

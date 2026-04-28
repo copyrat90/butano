@@ -12,6 +12,11 @@
  * @tableofcontents
  *
  *
+ * @section changelog_21_5_1 21.5.1 (next release)
+ *
+ * Wait for V-Blank fixed (thanks yeon and AntonioND!).
+ *
+ *
  * @section changelog_21_5_0 21.5.0
  *
  * * Multiplications, divisions and memory operations like `memcpy` and `memset` optimized thanks to

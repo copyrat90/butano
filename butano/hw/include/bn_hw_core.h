@@ -28,17 +28,37 @@ namespace bn::hw::core
         }
     }
 
-    inline void wait_for_vblank()
+    inline void wait_for_vblank(volatile bool& flag)
     {
-        if(REG_VCOUNT == 159)
+        constexpr int unsafe_scanlines = 10;
+
+        BN_BARRIER;
+        flag = true;
+        BN_BARRIER;
+
+        while(flag)
         {
-            while(REG_VCOUNT == 159)
+            unsigned vcount = REG_VCOUNT;
+
+            if(vcount >= 160 - unsafe_scanlines && vcount <= 160)
             {
+                // vcount in unsafe range: active wait.
             }
-        }
-        else
-        {
-            VBlankIntrWait();
+            else
+            {
+                // vcount in safe range: bios wait.
+
+                BN_BARRIER;
+
+                if(flag)
+                {
+                    // flag can't be set to false after the check because we're in the safe range:
+                    VBlankIntrWait();
+                }
+
+                // flag must be false at this point, avoid the last check:
+                return;
+            }
         }
     }
 
