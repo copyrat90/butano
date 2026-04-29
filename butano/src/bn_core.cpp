@@ -737,7 +737,7 @@ void set_dma_enabled(bool dma_enabled)
 
                 #ifdef BN_STACKTRACE
                     #if BN_CFG_LOG_ENABLED
-                        bn::hw::core::wait_for_vblank();
+                        bn::hw::core::wait_for_vblank(data.vblank_intr_active);
                         bn::hw::stacktrace::log(5);
                     #endif
                 #endif
