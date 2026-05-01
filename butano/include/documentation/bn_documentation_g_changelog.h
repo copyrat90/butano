@@ -12,7 +12,7 @@
  * @tableofcontents
  *
  *
- * @section changelog_21_5_1 21.5.1 (next release)
+ * @section changelog_21_5_1 21.5.1
  *
  * Wait for V-Blank fixed (thanks yeon and AntonioND!).
  *
