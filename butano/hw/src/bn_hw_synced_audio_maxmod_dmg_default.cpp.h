@@ -251,7 +251,7 @@ void disable()
 
 bool music_playing()
 {
-    return data_ref().playing;
+    return data_ref().paused || mmActive();
 }
 
 void play_music(int mus_id, const void* dmg_mus_song, dmg_music_type dmg_mus_type, bool loop)
