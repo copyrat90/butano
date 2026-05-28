@@ -131,7 +131,14 @@ void* best_fit_allocator::calloc(size_type num, size_type bytes)
     BN_ASSERT(num >= 0, "Invalid num: ", num);
     BN_ASSERT(bytes >= 0, "Invalid bytes: ", bytes);
 
-    bytes *= num;
+    uint64_t uint64_bytes = uint64_t(num) * uint64_t(bytes);
+
+    if(uint64_bytes > bn::numeric_limits<size_type>::max()) [[unlikely]]
+    {
+        return nullptr;
+    }
+
+    bytes = size_type(uint64_bytes);
 
     void* result = alloc(bytes);
 
@@ -152,6 +159,8 @@ void* best_fit_allocator::realloc(void* ptr, size_type new_bytes)
     }
 
     BN_ASSERT(new_bytes >= 0, "Invalid new bytes: ", new_bytes);
+
+    new_bytes = _aligned_bytes(new_bytes);
 
     uint8_t* item_ptr = static_cast<uint8_t*>(ptr) - _sizeof_used_item;
     auto item = reinterpret_cast<item_type*>(item_ptr);

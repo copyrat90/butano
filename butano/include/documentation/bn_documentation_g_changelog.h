@@ -12,10 +12,15 @@
  * @tableofcontents
  *
  *
- * @section changelog_21_6_0 21.6.0 (next release)
+ * @section changelog_21_6_0 21.6.0
  *
- * <a href="https://github.com/copyrat90/advgm">advgm</a> updated to 0.3.0. Remember to rebuild your project
- * after updating.
+ * * bn::sound::play_optional and bn::sound::play_with_priority_optional added.
+ * * bn::sound_handle::set_speed and bn::sound_handle::set_panning don't crash with inactive sounds.
+ * * <a href="https://github.com/copyrat90/advgm">advgm</a> updated to 0.3.0. Remember to rebuild your project
+ *   after updating.
+ * * bn::best_fit_allocator::realloc alignment fixed.
+ * * bn::best_fit_allocator::calloc overflow fixed.
+ * * bn::best_fit_allocator::realloc documentation improved.
  *
  *
  * @section changelog_21_5_1 21.5.1
