@@ -139,8 +139,15 @@ public:
     }
 
     /**
+     * @brief Specifies if the action must be updated forever or not.
+     */
+    void set_update_forever(bool forever);
+
+    /**
      * @brief Returns the current index of the given graphics_indexes
      * (not the current index of the tile set to reference in the given tiles_item).
+     *
+     * This index is the one to be used on the next tiles change. It can be out of bounds if the action is done.
      */
     [[nodiscard]] int current_index() const
     {
@@ -151,15 +158,25 @@ public:
      * @brief Sets the current index of the given graphics_indexes
      * (not the current index of the tile set to reference in the given tiles_item).
      */
-    void set_current_index(int current_index);
+    void set_current_index(int current_index)
+    {
+        set_current_index(current_index, true);
+    }
+
+    /**
+     * @brief Sets the current index of the given graphics_indexes
+     * (not the current index of the tile set to reference in the given tiles_item).
+     * @param current_index New index of the given graphics_indexes.
+     * @param update_sprite_now Specifies if the sprite must be updated now or on the next tiles change.
+     */
+    void set_current_index(int current_index, bool update_sprite_now);
 
     /**
      * @brief Returns the current index of the tile set to reference in the given tiles_item.
+     *
+     * This index is the one to be used on the next tiles change.
      */
-    [[nodiscard]] int current_graphics_index() const
-    {
-        return graphics_indexes()[_current_graphics_indexes_index];
-    }
+    [[nodiscard]] int current_graphics_index() const;
 
 protected:
     /// @cond DO_NOT_DOCUMENT
@@ -194,7 +211,7 @@ private:
 template<int MaxSize>
 class sprite_animate_action : public isprite_animate_action
 {
-    static_assert(MaxSize > 1);
+    static_assert(MaxSize > 0);
 
 public:
     /**
@@ -572,7 +589,14 @@ public:
     }
 
     /**
+     * @brief Specifies if the action must be updated forever or not.
+     */
+    void set_update_forever(bool forever);
+
+    /**
      * @brief Returns the current index of the given tile sets.
+     *
+     * This index is the one to be used on the next tiles change. It can be out of bounds if the action is done.
      */
     [[nodiscard]] int current_index() const
     {
@@ -582,15 +606,24 @@ public:
     /**
      * @brief Sets the current index of the given tile sets.
      */
-    void set_current_index(int current_index);
+    void set_current_index(int current_index)
+    {
+        set_current_index(current_index, true);
+    }
+
+    /**
+     * @brief Sets the current index of the given tile sets.
+     * @param current_index New index of the given tile sets.
+     * @param update_sprite_now Specifies if the sprite must be updated now or on the next tiles change.
+     */
+    void set_current_index(int current_index, bool update_sprite_now);
 
     /**
      * @brief Returns the current tile set.
+     *
+     * This tile set is the one to be used on the next tiles change.
      */
-    [[nodiscard]] const sprite_tiles_ptr& current_tiles() const
-    {
-        return tiles_list()[_current_tiles_list_index];
-    }
+    [[nodiscard]] const sprite_tiles_ptr& current_tiles() const;
 
 protected:
     /// @cond DO_NOT_DOCUMENT
@@ -629,7 +662,7 @@ private:
 template<int MaxSize>
 class sprite_cached_animate_action : public isprite_cached_animate_action
 {
-    static_assert(MaxSize > 1);
+    static_assert(MaxSize > 0);
 
 public:
     /**

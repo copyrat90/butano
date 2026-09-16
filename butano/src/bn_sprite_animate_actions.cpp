@@ -93,7 +93,14 @@ void isprite_animate_action::set_next_change_updates(int next_change_updates)
     _current_wait_updates = next_change_updates;
 }
 
-void isprite_animate_action::set_current_index(int current_index)
+void isprite_animate_action::set_update_forever(bool forever)
+{
+    BN_ASSERT(! forever || ! done(), "Action is done");
+
+    _forever = forever;
+}
+
+void isprite_animate_action::set_current_index(int current_index, bool update_sprite_now)
 {
     const ivector<uint16_t>& graphics_indexes = this->graphics_indexes();
     int num_graphics_indexes = graphics_indexes.size();
@@ -118,7 +125,17 @@ void isprite_animate_action::set_current_index(int current_index)
         }
     }
 
-    _sprite_ref->set_tiles(*_tiles_item_ref, graphics_indexes[current_index]);
+    if(update_sprite_now)
+    {
+        _sprite_ref->set_tiles(*_tiles_item_ref, graphics_indexes[current_index]);
+    }
+}
+
+int isprite_animate_action::current_graphics_index() const
+{
+    BN_ASSERT(! done(), "Action is done");
+
+    return graphics_indexes().data()[_current_graphics_indexes_index];
 }
 
 void isprite_animate_action::_set_refs(
@@ -139,7 +156,7 @@ void isprite_animate_action::_assign(const isprite_animate_action& other)
 
 void isprite_animate_action::_assign_graphics_indexes(const span<const uint16_t>& graphics_indexes)
 {
-    BN_ASSERT(graphics_indexes.size() > 1 && graphics_indexes.size() <= _graphics_indexes_ref->max_size(),
+    BN_ASSERT(graphics_indexes.size() && graphics_indexes.size() <= _graphics_indexes_ref->max_size(),
               "Invalid graphics indexes count: ", graphics_indexes.size(), " - ", _graphics_indexes_ref->max_size());
 
     for(uint16_t graphics_index : graphics_indexes)
@@ -150,7 +167,7 @@ void isprite_animate_action::_assign_graphics_indexes(const span<const uint16_t>
 
 void isprite_animate_action::_assign_graphics_indexes(const ivector<uint16_t>& graphics_indexes)
 {
-    BN_ASSERT(graphics_indexes.size() > 1 && graphics_indexes.size() <= _graphics_indexes_ref->max_size(),
+    BN_ASSERT(graphics_indexes.size() && graphics_indexes.size() <= _graphics_indexes_ref->max_size(),
               "Invalid graphics indexes count: ", graphics_indexes.size(), " - ", _graphics_indexes_ref->max_size());
 
     *_graphics_indexes_ref = graphics_indexes;
@@ -231,7 +248,14 @@ void isprite_cached_animate_action::set_next_change_updates(int next_change_upda
     _current_wait_updates = next_change_updates;
 }
 
-void isprite_cached_animate_action::set_current_index(int current_index)
+void isprite_cached_animate_action::set_update_forever(bool forever)
+{
+    BN_ASSERT(! forever || ! done(), "Action is done");
+
+    _forever = forever;
+}
+
+void isprite_cached_animate_action::set_current_index(int current_index, bool update_sprite_now)
 {
     const ivector<sprite_tiles_ptr>& tiles_list = this->tiles_list();
     int tiles_list_size = tiles_list.size();
@@ -256,7 +280,17 @@ void isprite_cached_animate_action::set_current_index(int current_index)
         }
     }
 
-    _sprite_ref->set_tiles(tiles_list[current_index]);
+    if(update_sprite_now)
+    {
+        _sprite_ref->set_tiles(tiles_list[current_index]);
+    }
+}
+
+const sprite_tiles_ptr& isprite_cached_animate_action::current_tiles() const
+{
+    BN_ASSERT(! done(), "Action is done");
+
+    return tiles_list().data()[_current_tiles_list_index];
 }
 
 void isprite_cached_animate_action::_set_refs(sprite_ptr& sprite, ivector<sprite_tiles_ptr>& tiles_list)
@@ -276,7 +310,7 @@ void isprite_cached_animate_action::_assign(const isprite_cached_animate_action&
 void isprite_cached_animate_action::_assign_graphics_indexes(
         const sprite_tiles_item& tiles_item, const span<const uint16_t>& graphics_indexes)
 {
-    BN_ASSERT(graphics_indexes.size() > 1 && graphics_indexes.size() <= _tiles_list_ref->max_size(),
+    BN_ASSERT(graphics_indexes.size() && graphics_indexes.size() <= _tiles_list_ref->max_size(),
               "Invalid graphics indexes count: ", graphics_indexes.size(), " - ", _tiles_list_ref->max_size());
 
     for(int graphics_index : graphics_indexes)
@@ -287,7 +321,7 @@ void isprite_cached_animate_action::_assign_graphics_indexes(
 
 void isprite_cached_animate_action::_assign_tiles_list(span<sprite_tiles_ptr> tiles_list)
 {
-    BN_ASSERT(tiles_list.size() > 1 && tiles_list.size() <= _tiles_list_ref->max_size(),
+    BN_ASSERT(tiles_list.size() && tiles_list.size() <= _tiles_list_ref->max_size(),
               "Invalid tiles count: ", tiles_list.size(), " - ", _tiles_list_ref->max_size());
 
     for(sprite_tiles_ptr& tiles : tiles_list)
@@ -298,7 +332,7 @@ void isprite_cached_animate_action::_assign_tiles_list(span<sprite_tiles_ptr> ti
 
 void isprite_cached_animate_action::_assign_tiles_list(const ivector<sprite_tiles_ptr>& tiles_list)
 {
-    BN_ASSERT(tiles_list.size() > 1 && tiles_list.size() <= _tiles_list_ref->max_size(),
+    BN_ASSERT(tiles_list.size() && tiles_list.size() <= _tiles_list_ref->max_size(),
               "Invalid tiles count: ", tiles_list.size(), " - ", _tiles_list_ref->max_size());
 
     *_tiles_list_ref = tiles_list;
@@ -306,7 +340,7 @@ void isprite_cached_animate_action::_assign_tiles_list(const ivector<sprite_tile
 
 void isprite_cached_animate_action::_assign_tiles_list(ivector<sprite_tiles_ptr>&& tiles_list)
 {
-    BN_ASSERT(tiles_list.size() > 1 && tiles_list.size() <= _tiles_list_ref->max_size(),
+    BN_ASSERT(tiles_list.size() && tiles_list.size() <= _tiles_list_ref->max_size(),
               "Invalid tiles count: ", tiles_list.size(), " - ", _tiles_list_ref->max_size());
 
     *_tiles_list_ref = move(tiles_list);

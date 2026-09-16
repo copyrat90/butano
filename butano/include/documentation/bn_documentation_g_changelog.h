@@ -12,6 +12,25 @@
  * @tableofcontents
  *
  *
+ * @section changelog_21_9_0 21.9.0 (next release)
+ *
+ * * bn::sprite_animate_action::set_update_forever and bn::sprite_cached_animate_action::set_update_forever
+ * * bn::sprite_animate_action and bn::sprite_cached_animate_action support a single graphics index. added.
+ * * Background animate actions have the same features as sprite animate actions.
+ *
+ *
+ * @section changelog_21_8_0 21.8.0
+ *
+ * * bn::sprite_animate_action::set_current_index and bn::sprite_cached_animate_action::set_current_index
+ *   allow to update their sprite on the next tiles change.
+ * * bn::sprite_animate_action::current_graphics_index and bn::sprite_cached_animate_action::current_tiles
+ *   asserts improved.
+ * * bn::sprite_animate_action::current_index, bn::sprite_animate_action::current_graphics_index,
+ *   bn::sprite_cached_animate_action::current_index and bn::sprite_cached_animate_action::current_tiles
+ *   documentation improved.
+ * * <a href="https://dare-to-square.com">Dare to Square</a> added to `README.md`.
+ *
+ *
  * @section changelog_21_7_1 21.7.1
  *
  * Standard containers swap maximum size check fixed (thanks yeon!).
