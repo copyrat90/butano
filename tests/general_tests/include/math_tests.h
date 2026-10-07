@@ -17,6 +17,8 @@ public:
     math_tests() :
         tests("math")
     {
+        BN_ASSERT(bn::fixed_t<28>(0.7) * -6 == -6 * bn::fixed_t<28>(0.7));
+
         BN_ASSERT(bn::rule_of_three_approximation(360, 65536).calculate(0) == 0);
         BN_ASSERT(bn::rule_of_three_approximation(360, 65536).calculate(90) == 16384);
         BN_ASSERT(bn::rule_of_three_approximation(360, 65536).calculate(180) == 32768);

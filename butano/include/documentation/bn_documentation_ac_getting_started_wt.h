@@ -9,33 +9,17 @@
 /**
  * @page getting_started_wt Getting started with Wonderful Toolchain
  *
- * Downloading Butano and building their games and examples is easy and doesn't take too much time, pinky promise.
- *
  * @tableofcontents
  *
  *
  * @section getting_started_wt_supported_platforms Supported platforms
  *
- * <a href="https://wonderful.asie.pl/">Wonderful Toolchain</a> supports Windows and Unix-like platforms.
- *
- * If you want to develop on macOS, you should try to use a Linux virtual machine or
- * @ref getting_started "devkitARM" instead.
- *
- *
- * @section getting_started_wt_emulator GBA emulator
- *
- * Before anything, it is convenient to have a GBA emulator at hand,
- * so you don't have to test in real hardware each change you make in your project.
- *
- * For developing GBA games, <a href="https://mgba.io">mGBA</a>,
- * <a href="https://github.com/nba-emu/NanoBoyAdvance">NanoBoyAdvance</a>,
- * <a href="https://github.com/SourMesen/Mesen2">Mesen</a> and the debug version of
- * <a href="https://problemkaputt.de/gba.htm">No$gba</a> are recommended.
+ * <a href="https://wonderful.asie.pl/">Wonderful Toolchain</a> supports Windows, macOS and Unix-like platforms.
  *
  *
  * @section getting_started_wt_wt Wonderful Toolchain
  *
- * The next step is to download and install <a href="https://wonderful.asie.pl/">Wonderful Toolchain</a>
+ * The first step is to download and install <a href="https://wonderful.asie.pl/">Wonderful Toolchain</a>
  * using <a href="https://wonderful.asie.pl/docs/getting-started/">this tutorial</a>.
  *
  * From now on, this guide assumes a Windows environment, but the steps to take for Unix-like platforms

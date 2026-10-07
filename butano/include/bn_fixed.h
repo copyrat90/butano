@@ -635,6 +635,14 @@ public:
     /**
      * @brief Returns a multiplied by b.
      */
+    [[nodiscard]] constexpr friend fixed_t operator*(int a, fixed_t b)
+    {
+        return b.multiplication(a);
+    }
+
+    /**
+     * @brief Returns a multiplied by b.
+     */
     [[nodiscard]] constexpr friend fixed_t operator*(fixed_t a, fixed_t b)
     {
         return a.multiplication(b);
@@ -645,7 +653,7 @@ public:
      */
     template<int OtherPrecision>
     [[nodiscard]] constexpr friend fixed_t<bn::max(Precision, OtherPrecision)> operator*(
-        fixed_t a, fixed_t<OtherPrecision> b)
+            fixed_t a, fixed_t<OtherPrecision> b)
     {
         using output_fixed_t = fixed_t<bn::max(Precision, OtherPrecision)>;
 

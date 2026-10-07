@@ -292,9 +292,25 @@ public:
     /**
      * @brief Returns a multiplied by b.
      */
+    [[nodiscard]] constexpr friend fixed_point_t operator*(int a, const fixed_point_t& b)
+    {
+        return fixed_point_t(b._x * a, b._y * a);
+    }
+
+    /**
+     * @brief Returns a multiplied by b.
+     */
     [[nodiscard]] constexpr friend fixed_point_t operator*(const fixed_point_t& a, fixed_t<Precision> b)
     {
         return fixed_point_t(a._x * b, a._y * b);
+    }
+
+    /**
+     * @brief Returns a multiplied by b.
+     */
+    [[nodiscard]] constexpr friend fixed_point_t operator*(fixed_t<Precision> a, const fixed_point_t& b)
+    {
+        return fixed_point_t(b._x * a, b._y * a);
     }
 
     /**

@@ -294,9 +294,25 @@ public:
     /**
      * @brief Returns a multiplied by b.
      */
+    [[nodiscard]] constexpr friend fixed_size_t operator*(int a, const fixed_size_t& b)
+    {
+        return fixed_size_t(b._width * a, b._height * a);
+    }
+
+    /**
+     * @brief Returns a multiplied by b.
+     */
     [[nodiscard]] constexpr friend fixed_size_t operator*(const fixed_size_t& a, fixed_t<Precision> b)
     {
         return fixed_size_t(a._width * b, a._height * b);
+    }
+
+    /**
+     * @brief Returns a multiplied by b.
+     */
+    [[nodiscard]] constexpr friend fixed_size_t operator*(fixed_t<Precision> a, const fixed_size_t& b)
+    {
+        return fixed_size_t(b._width * a, b._height * a);
     }
 
     /**
