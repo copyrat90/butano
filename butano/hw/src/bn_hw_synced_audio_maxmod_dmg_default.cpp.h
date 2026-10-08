@@ -102,8 +102,8 @@ namespace
         // But `vblank_interrupt_handler()` will be called, so you can have a race condition if you're not careful.
         //
         // Though, it won't be so problematic because you need to at least wait for 2 vblanks.
-        const mm_hword samples_per_tick = mmLayerMain.tickrate;
-        const mm_hword sample_position = mmLayerMain.sampcount;
+        const mm_hword samples_per_tick = mmLayerMain.samples_per_tick;
+        const mm_hword sample_position = mmLayerMain.samples_elapsed;
 
         // Calculate the startup delay.
         int samples_to_delay_on_startup = (int)samples_per_tick - sample_position;
